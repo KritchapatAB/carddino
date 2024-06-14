@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 [System.Serializable]
 
-[CreateAssetMenu(menuName = "card")]
 public class Card
 {
         public int id;
@@ -14,6 +13,7 @@ public class Card
         public int cost;
         public int damage;
         public int health;
+        public string dinoType;
         public Sprite dinoImage;
         
 }

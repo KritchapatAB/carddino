@@ -1,45 +1,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
+using UnityEngine.UI;
 
 public class CardViz : MonoBehaviour
 {
-    public TextMeshProUGUI cardName;
+    public TextMeshProUGUI cardNameText;
     public TextMeshProUGUI costText;
     public TextMeshProUGUI damageText;
     public TextMeshProUGUI healthText;
     public Image dinoImage;
     public Image dinoClass;
 
-    public Card card;
+    private Card card;  // Assuming you have a Card class defined
 
-    private void Start(){
-        LoadCard(card);
-    }
-
-    private void LoadCard(Card c)
+    public void LoadCard(Card cardData)
     {
-        if (c== null)
+        if (cardData == null)
+        {
+            Debug.LogWarning("Null card data provided.");
             return;
+        }
 
-        card = c;
-        cardName.text = c.cardName;
-        costText.text = c.cost.ToString();
-        //if(string.IsNullorEmpty(c.cardEffect))
-        //{effect.gameObject.SetActive(false);
-        //} else {
-        //wffect.gameObject.SetActive(true)
-        //cardEffect.text = C.cardEffect;}
-        damageText.text = c.damage.ToString();
-        healthText.text = c.health.ToString();
-        dinoImage.sprite = c.dinoImage;
-
-
+        card = cardData;
+        UpdateCardUI();
     }
 
-    void Update(){
-   
+    private void UpdateCardUI()
+    {
+        cardNameText.text = card.cardName;
+        costText.text = card.cost.ToString();
+        damageText.text = card.damage.ToString();
+        healthText.text = card.health.ToString();
+        dinoImage.sprite = card.dinoImage;
+        dinoClass.sprite = card.cardClass;
     }
 }
+
+
+
+
