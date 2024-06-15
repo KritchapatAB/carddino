@@ -32,6 +32,29 @@ public class CardDatabase : MonoBehaviour
 
         AddCard(new Card
         {
+            id = 6,
+            cardName = "Triceratops",
+            cost = 1,
+            damage = 1,
+            health = 3,
+            dinoType = "Defender",
+            dinoImage = Resources.Load<Sprite>("Picture/Dino/Defender/Triceratops"),
+            cardClass = Resources.Load<Sprite>("Picture/Card/Icon/AssaultClass")
+        });
+
+        AddCard(new Card
+        {
+            id = 12,
+            cardName = "Raptor",
+            cost = 1,
+            damage = 2,
+            health = 1,
+            dinoType = "Attacker",
+            dinoImage = Resources.Load<Sprite>("Picture/Dino/Attacker/Raptor"),
+            cardClass = Resources.Load<Sprite>("Picture/Card/Icon/AssaultClass")
+        });
+        AddCard(new Card
+        {
             id = 2,
             cardName = "Microraptor",
             cost = 0,
@@ -75,18 +98,6 @@ public class CardDatabase : MonoBehaviour
             health = 3,
             dinoType = "Defender",
             dinoImage = Resources.Load<Sprite>("Picture/Dino/Defender/Parasaur"),
-            cardClass = Resources.Load<Sprite>("Picture/Card/Icon/AssaultClass")
-        });
-
-        AddCard(new Card
-        {
-            id = 6,
-            cardName = "Triceratops",
-            cost = 1,
-            damage = 1,
-            health = 3,
-            dinoType = "Defender",
-            dinoImage = Resources.Load<Sprite>("Picture/Dino/Defender/Triceratops"),
             cardClass = Resources.Load<Sprite>("Picture/Card/Icon/AssaultClass")
         });
 
@@ -147,18 +158,6 @@ public class CardDatabase : MonoBehaviour
             health = 10,
             dinoType = "Defender",
             dinoImage = Resources.Load<Sprite>("Picture/Dino/Defender/Brachiosaurus"),
-            cardClass = Resources.Load<Sprite>("Picture/Card/Icon/AssaultClass")
-        });
-
-        AddCard(new Card
-        {
-            id = 12,
-            cardName = "Raptor",
-            cost = 1,
-            damage = 2,
-            health = 1,
-            dinoType = "Attacker",
-            dinoImage = Resources.Load<Sprite>("Picture/Dino/Attacker/Raptor"),
             cardClass = Resources.Load<Sprite>("Picture/Card/Icon/AssaultClass")
         });
 

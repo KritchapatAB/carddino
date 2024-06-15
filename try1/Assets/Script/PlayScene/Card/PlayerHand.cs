@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerHand : MonoBehaviour
 {
@@ -9,7 +8,7 @@ public class PlayerHand : MonoBehaviour
     public RandomCard randomCard;
     public int handSize = 5;
 
-    public GameObject cardPrefab; // Drag your card prefab here
+    public GameObject draggableCardPrefab; // Reference to the draggable card prefab
     public Transform handPanel; // Drag the UI panel for hand here
 
     void Start()
@@ -31,10 +30,18 @@ public class PlayerHand : MonoBehaviour
 
     void DrawInitialHand()
     {
-        for (int i = 0; i < handSize; i++)
+        // Draw first three "Normal" cards
+        for (int i = 0; i < 3; i++)
         {
-            DrawRandomCard();
+            DrawSpecificCard(cardDatabase.cards, "Normal");
         }
+
+        // Draw one "Attacker" card with cost less than 4
+        DrawSpecificCard(cardDatabase.cards, "Attacker", 4);
+
+        // Draw one "Defender" card with cost less than 4
+        DrawSpecificCard(cardDatabase.cards, "Defender", 4);
+
         Debug.Log("Initial hand drawn. Card count in hand: " + playerHand.Count);
     }
 
@@ -60,9 +67,33 @@ public class PlayerHand : MonoBehaviour
         }
     }
 
+    void DrawSpecificCard(List<Card> cards, string dinoType, int maxCost = int.MaxValue)
+    {
+        List<Card> filteredCards = cards.FindAll(card => card.dinoType == dinoType && card.cost < maxCost);
+        if (filteredCards.Count > 0)
+        {
+            Card drawnCard = randomCard.DrawAndRemoveRandomCard(filteredCards);
+            if (drawnCard != null)
+            {
+                playerHand.Add(drawnCard);
+                cards.Remove(drawnCard); // Remove from main deck
+                Debug.Log("Specific card added to hand: " + drawnCard.cardName);
+                DisplayCard(drawnCard);
+            }
+            else
+            {
+                Debug.LogWarning("No specific card was drawn from the deck.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"No cards found with dinoType {dinoType} and cost less than {maxCost}.");
+        }
+    }
+
     void DisplayCard(Card card)
     {
-        GameObject newCard = Instantiate(cardPrefab, handPanel);
+        GameObject newCard = Instantiate(draggableCardPrefab, handPanel);
 
         // Debug log to check if the prefab is instantiated
         if (newCard == null)
