@@ -4133,9 +4133,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerDeck: []
-  desiredDeckSize: 30
+  desiredDeckSize: 10
   cardDatabase: {fileID: 477211103}
-  randomCardScript: {fileID: 355960989}
+  desiredNormalCount: 10
+  desiredAttackerCount: 0
+  desiredDefenderCount: 0
 --- !u!1 &3321487806147060169
 GameObject:
   m_ObjectHideFlags: 0

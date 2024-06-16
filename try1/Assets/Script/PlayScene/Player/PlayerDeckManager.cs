@@ -98,5 +98,3 @@ public class PlayerDeckManager : MonoBehaviour
         Debug.Log("Player deck cleared.");
     }
 }
-
-
