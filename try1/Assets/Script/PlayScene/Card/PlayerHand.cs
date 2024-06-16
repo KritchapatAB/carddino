@@ -7,9 +7,9 @@ public class PlayerHand : MonoBehaviour
     public CardDatabase cardDatabase;
     public RandomCard randomCard;
     public int handSize = 5;
-
-    public GameObject draggableCardPrefab; // Reference to the draggable card prefab
-    public Transform handPanel; // Drag the UI panel for hand here
+    public GameObject draggableCardPrefab;
+    public Transform handPanel;
+    private List<GameObject> instantiatedCards = new List<GameObject>();
 
     void Start()
     {
@@ -26,20 +26,25 @@ public class PlayerHand : MonoBehaviour
         }
 
         cardDatabase.OnDatabaseReady += DrawInitialHand;
+
+        DraggableCard.OnDragStart += HideHand;
+        DraggableCard.OnDragEnd += ShowHand;
+    }
+
+    void OnDestroy()
+    {
+        DraggableCard.OnDragStart -= HideHand;
+        DraggableCard.OnDragEnd -= ShowHand;
     }
 
     void DrawInitialHand()
     {
-        // Draw first three "Normal" cards
         for (int i = 0; i < 3; i++)
         {
             DrawSpecificCard(cardDatabase.cards, "Normal");
         }
 
-        // Draw one "Attacker" card with cost less than 4
         DrawSpecificCard(cardDatabase.cards, "Attacker", 4);
-
-        // Draw one "Defender" card with cost less than 4
         DrawSpecificCard(cardDatabase.cards, "Defender", 4);
 
         Debug.Log("Initial hand drawn. Card count in hand: " + playerHand.Count);
@@ -76,7 +81,7 @@ public class PlayerHand : MonoBehaviour
             if (drawnCard != null)
             {
                 playerHand.Add(drawnCard);
-                cards.Remove(drawnCard); // Remove from main deck
+                cards.Remove(drawnCard);
                 Debug.Log("Specific card added to hand: " + drawnCard.cardName);
                 DisplayCard(drawnCard);
             }
@@ -94,15 +99,12 @@ public class PlayerHand : MonoBehaviour
     void DisplayCard(Card card)
     {
         GameObject newCard = Instantiate(draggableCardPrefab, handPanel);
-
-        // Debug log to check if the prefab is instantiated
         if (newCard == null)
         {
             Debug.LogError("Failed to instantiate card prefab.");
             return;
         }
 
-        // Use CardViz to load the card data
         CardViz cardViz = newCard.GetComponent<CardViz>();
         if (cardViz != null)
         {
@@ -113,5 +115,40 @@ public class PlayerHand : MonoBehaviour
         {
             Debug.LogError("CardViz component not found on card prefab.");
         }
+
+        instantiatedCards.Add(newCard);
+    }
+
+    public void OnCardHover(GameObject hoveredCard)
+        {
+            foreach (GameObject cardObject in instantiatedCards)
+            {
+                if (cardObject == hoveredCard)
+                {
+                    cardObject.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
+                }
+                else
+                {
+                    cardObject.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
+                }
+            }
+        }
+
+        public void OnCardHoverExit(GameObject hoveredCard)
+        {
+            foreach (GameObject cardObject in instantiatedCards)
+            {
+                cardObject.transform.localScale = Vector3.one;
+            }
+        }
+
+    public void HideHand()
+    {
+        handPanel.gameObject.SetActive(false);
+    }
+
+    public void ShowHand()
+    {
+        handPanel.gameObject.SetActive(true);
     }
 }

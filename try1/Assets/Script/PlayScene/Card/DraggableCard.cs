@@ -1,13 +1,15 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
+public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     private Vector3 initialPosition;
     private Transform originalParent;
     private Canvas canvas;
-    private bool isHovering = false;
+
+    public delegate void DragAction();
+    public static event DragAction OnDragStart;
+    public static event DragAction OnDragEnd;
 
     void Start()
     {
@@ -20,6 +22,7 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         initialPosition = transform.position;
         transform.SetParent(canvas.transform, true);
+        OnDragStart?.Invoke();
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -38,27 +41,16 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         {
             initialPosition = transform.position;
         }
+        OnDragEnd?.Invoke();
     }
 
     private bool IsValidDropArea()
     {
-        // Example logic to check if dropped in a valid area
-        return false;
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        // Implement hover effect here, e.g., change scale or color
-        transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
-        isHovering = true;
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        // Remove hover effect here, e.g., revert scale or color
-        transform.localScale = Vector3.one;
-        isHovering = false;
+        return false; // Replace with your logic for valid drop areas
     }
 }
+
+
+
 
 

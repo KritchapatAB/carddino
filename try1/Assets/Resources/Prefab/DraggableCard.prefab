@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 2797617805696606189}
   - component: {fileID: 5252733442954471736}
   - component: {fileID: 6593524619503513429}
-  - component: {fileID: 2900538563384074005}
+  - component: {fileID: 3398265132557467902}
   m_Layer: 5
   m_Name: DraggableCard
   m_TagString: Untagged
@@ -157,7 +157,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1196ef5045fbbc34cb3a3809d3f7633f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2900538563384074005
+--- !u!114 &3398265132557467902
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -166,7 +166,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1163395673049289670}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7dcfe9c64a0e2134e93895072b933ed3, type: 3}
+  m_Script: {fileID: 11500000, guid: d8f25004c98e79e4398e0d5786f82822, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1843411509170864763
