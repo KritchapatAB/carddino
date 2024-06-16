@@ -198,8 +198,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerHand: []
-  cardDatabase: {fileID: 477211103}
-  randomCard: {fileID: 355960989}
+  playerDeckManager: {fileID: 2229664038875156342}
   handSize: 5
   draggableCardPrefab: {fileID: 1163395673049289670, guid: 1e2f391d428c67d42982f52c2611fbff, type: 3}
   handPanel: {fileID: 148707837}
@@ -4133,11 +4132,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerDeck: []
-  desiredDeckSize: 10
+  desiredDeckSize: 30
   cardDatabase: {fileID: 477211103}
-  desiredNormalCount: 10
-  desiredAttackerCount: 0
-  desiredDefenderCount: 0
 --- !u!1 &3321487806147060169
 GameObject:
   m_ObjectHideFlags: 0

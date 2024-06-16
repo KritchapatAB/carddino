@@ -53,6 +53,7 @@ public class CardDatabase : MonoBehaviour
             dinoImage = Resources.Load<Sprite>("Picture/Dino/Attacker/Raptor"),
             cardClass = Resources.Load<Sprite>("Picture/Card/Icon/AssaultClass")
         });
+
         AddCard(new Card
         {
             id = 2,
@@ -269,8 +270,8 @@ public class CardDatabase : MonoBehaviour
             cardClass = Resources.Load<Sprite>("Picture/Card/Icon/AssaultClass")
         });
         #endregion
-        
-    Debug.Log("Card count in database: " + cards.Count);
+
+        Debug.Log("Card count in database: " + cards.Count);
 
         if (cards.Count == 0)
         {
@@ -282,7 +283,6 @@ public class CardDatabase : MonoBehaviour
             OnDatabaseReady();
         }
     }
-
 
     public void AddCard(Card newCard)
     {
@@ -317,4 +317,3 @@ public class CardDatabase : MonoBehaviour
         }
     }
 }
-       

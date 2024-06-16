@@ -12,14 +12,21 @@ public class PlayerDeckManager : MonoBehaviour
         InitializePlayerDeck();
     }
 
-    void InitializePlayerDeck()
+    public void InitializePlayerDeck()
     {
         List<Card> availableCards = new List<Card>(cardDatabase.cards); // Get all available cards from CardDatabase
 
         playerDeck.Clear(); // Clear existing playerDeck before initialization
 
-        // Draw cards until desiredDeckSize is reached
-        while (playerDeck.Count < desiredDeckSize && availableCards.Count > 0)
+        // Ensure there are cards to draw from the database
+        if (availableCards.Count == 0)
+        {
+            Debug.LogWarning("No cards available in the card database to initialize the player deck.");
+            return;
+        }
+
+        // Draw cards until desiredDeckSize is reached, allowing duplicates
+        while (playerDeck.Count < desiredDeckSize)
         {
             Card randomCard = DrawRandomCardFromList(availableCards); // Draw a random card from available cards
             if (randomCard != null)
@@ -60,7 +67,8 @@ public class PlayerDeckManager : MonoBehaviour
         {
             int randomIndex = Random.Range(0, playerDeck.Count);
             Card randomCard = playerDeck[randomIndex];
-            Debug.Log("Random card drawn from deck: " + randomCard.cardName);
+            playerDeck.RemoveAt(randomIndex); // Remove the card from the player deck
+            Debug.Log("Random card drawn from player deck: " + randomCard.cardName);
             return randomCard;
         }
         else
@@ -70,14 +78,21 @@ public class PlayerDeckManager : MonoBehaviour
         }
     }
 
-    // Method to add a card to playerDeck (if needed)
-    public void AddCardToDeck(Card card)
+    // Method to add a card back to playerDeck (if needed)
+    public void ReturnCardToDeck(Card card)
     {
         playerDeck.Add(card);
-        Debug.Log("Added card to player deck: " + card.cardName);
+        Debug.Log("Returned card to player deck: " + card.cardName);
     }
 
-    // Method to remove a card from playerDeck (if needed)
+    // Method to clear all cards from playerDeck (if needed)
+    public void ClearDeck()
+    {
+        playerDeck.Clear();
+        Debug.Log("Player deck cleared.");
+    }
+
+    // Method to remove a specific card from the deck
     public void RemoveCardFromDeck(Card card)
     {
         if (playerDeck.Contains(card))
@@ -87,14 +102,7 @@ public class PlayerDeckManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Card not found in player deck: " + card.cardName);
+            Debug.LogWarning("Card not found in player deck.");
         }
-    }
-
-    // Method to clear all cards from playerDeck (if needed)
-    public void ClearDeck()
-    {
-        playerDeck.Clear();
-        Debug.Log("Player deck cleared.");
     }
 }

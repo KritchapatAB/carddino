@@ -4,8 +4,7 @@ using UnityEngine;
 public class PlayerHand : MonoBehaviour
 {
     public List<Card> playerHand = new List<Card>();
-    public CardDatabase cardDatabase;
-    public RandomCard randomCard;
+    public PlayerDeckManager playerDeckManager;
     public int handSize = 5;
     public GameObject draggableCardPrefab;
     public Transform handPanel;
@@ -13,22 +12,18 @@ public class PlayerHand : MonoBehaviour
 
     void Start()
     {
-        if (randomCard == null)
+        if (playerDeckManager == null)
         {
-            Debug.LogError("RandomCard component not found! Please assign it in the inspector.");
+            Debug.LogError("PlayerDeckManager component not found! Please assign it in the inspector.");
             return;
         }
 
-        if (cardDatabase == null)
-        {
-            Debug.LogError("CardDatabase component not found! Please assign it in the inspector.");
-            return;
-        }
-
-        cardDatabase.OnDatabaseReady += DrawInitialHand;
+        playerDeckManager.InitializePlayerDeck();
 
         DraggableCard.OnDragStart += HideHand;
         DraggableCard.OnDragEnd += ShowHand;
+
+        DrawInitialHand();
     }
 
     void OnDestroy()
@@ -41,20 +36,20 @@ public class PlayerHand : MonoBehaviour
     {
         for (int i = 0; i < 3; i++)
         {
-            DrawSpecificCard(cardDatabase.cards, "Normal");
+            DrawSpecificCard("Normal");
         }
 
-        DrawSpecificCard(cardDatabase.cards, "Attacker", 4);
-        DrawSpecificCard(cardDatabase.cards, "Defender", 4);
+        DrawSpecificCard("Attacker", 4);
+        DrawSpecificCard("Defender", 4);
 
         Debug.Log("Initial hand drawn. Card count in hand: " + playerHand.Count);
     }
 
     public void DrawRandomCard()
     {
-        if (cardDatabase != null && randomCard != null)
+        if (playerDeckManager != null)
         {
-            Card drawnCard = randomCard.DrawAndRemoveRandomCard(cardDatabase.cards);
+            Card drawnCard = playerDeckManager.DrawRandomCard();
             if (drawnCard != null)
             {
                 playerHand.Add(drawnCard);
@@ -68,20 +63,20 @@ public class PlayerHand : MonoBehaviour
         }
         else
         {
-            Debug.LogError("CardDatabase or RandomCard component is missing.");
+            Debug.LogError("PlayerDeckManager component is missing.");
         }
     }
 
-    void DrawSpecificCard(List<Card> cards, string dinoType, int maxCost = int.MaxValue)
+    void DrawSpecificCard(string dinoType, int maxCost = int.MaxValue)
     {
-        List<Card> filteredCards = cards.FindAll(card => card.dinoType == dinoType && card.cost < maxCost);
+        List<Card> filteredCards = playerDeckManager.playerDeck.FindAll(card => card.dinoType == dinoType && card.cost < maxCost);
         if (filteredCards.Count > 0)
         {
-            Card drawnCard = randomCard.DrawAndRemoveRandomCard(filteredCards);
+            Card drawnCard = DrawAndRemoveRandomCard(filteredCards);
             if (drawnCard != null)
             {
                 playerHand.Add(drawnCard);
-                cards.Remove(drawnCard);
+                playerDeckManager.RemoveCardFromDeck(drawnCard);
                 Debug.Log("Specific card added to hand: " + drawnCard.cardName);
                 DisplayCard(drawnCard);
             }
@@ -122,28 +117,44 @@ public class PlayerHand : MonoBehaviour
         instantiatedCards.Add(newCard);
     }
 
-    public void OnCardHover(GameObject hoveredCard)
+    Card DrawAndRemoveRandomCard(List<Card> cards)
+    {
+        if (cards.Count > 0)
         {
-            foreach (GameObject cardObject in instantiatedCards)
-            {
-                if (cardObject == hoveredCard)
-                {
-                    cardObject.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
-                }
-                else
-                {
-                    cardObject.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
-                }
-            }
+            int randomIndex = Random.Range(0, cards.Count);
+            Card randomCard = cards[randomIndex];
+            cards.RemoveAt(randomIndex);
+            return randomCard;
         }
+        else
+        {
+            Debug.LogWarning("No more cards left to draw!");
+            return null;
+        }
+    }
 
-        public void OnCardHoverExit(GameObject hoveredCard)
+    public void OnCardHover(GameObject hoveredCard)
+    {
+        foreach (GameObject cardObject in instantiatedCards)
         {
-            foreach (GameObject cardObject in instantiatedCards)
+            if (cardObject == hoveredCard)
             {
-                cardObject.transform.localScale = Vector3.one;
+                cardObject.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
+            }
+            else
+            {
+                cardObject.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
             }
         }
+    }
+
+    public void OnCardHoverExit(GameObject hoveredCard)
+    {
+        foreach (GameObject cardObject in instantiatedCards)
+        {
+            cardObject.transform.localScale = Vector3.one;
+        }
+    }
 
     public void HideHand()
     {
