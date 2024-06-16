@@ -105,6 +105,9 @@ public class PlayerHand : MonoBehaviour
             return;
         }
 
+        // Set unique identifier for each card instance in the UI
+        newCard.name = $"Card_{card.id}_{Random.Range(0, 10000)}"; // Using a random number to ensure unique names
+
         CardViz cardViz = newCard.GetComponent<CardViz>();
         if (cardViz != null)
         {
