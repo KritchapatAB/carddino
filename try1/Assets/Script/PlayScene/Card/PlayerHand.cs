@@ -1,14 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerHand : MonoBehaviour
 {
     public List<Card> playerHand = new List<Card>();
     public PlayerDeckManager playerDeckManager;
+    public RandomCard randomCard; // Reference to RandomCard component
     public int handSize = 5;
-    public GameObject draggableCardPrefab;
+    public GameObject cardPrefab;
     public Transform handPanel;
     private List<GameObject> instantiatedCards = new List<GameObject>();
+
+    private GameObject selectedCard = null; // Track the currently selected card
 
     void Start()
     {
@@ -18,18 +22,14 @@ public class PlayerHand : MonoBehaviour
             return;
         }
 
+        if (randomCard == null)
+        {
+            Debug.LogError("RandomCard component not found! Please assign it in the inspector.");
+            return;
+        }
+
         playerDeckManager.InitializePlayerDeck();
-
-        DraggableCard.OnDragStart += HideHand;
-        DraggableCard.OnDragEnd += ShowHand;
-
         DrawInitialHand();
-    }
-
-    void OnDestroy()
-    {
-        DraggableCard.OnDragStart -= HideHand;
-        DraggableCard.OnDragEnd -= ShowHand;
     }
 
     void DrawInitialHand()
@@ -45,31 +45,10 @@ public class PlayerHand : MonoBehaviour
         Debug.Log("Initial hand drawn. Card count in hand: " + playerHand.Count);
     }
 
-    public void DrawRandomCard()
-    {
-        if (playerDeckManager != null)
-        {
-            Card drawnCard = playerDeckManager.DrawRandomCard();
-            if (drawnCard != null)
-            {
-                playerHand.Add(drawnCard);
-                Debug.Log("Card added to hand: " + drawnCard.cardName);
-                DisplayCard(drawnCard);
-            }
-            else
-            {
-                Debug.LogWarning("No card was drawn from the deck.");
-            }
-        }
-        else
-        {
-            Debug.LogError("PlayerDeckManager component is missing.");
-        }
-    }
-
     void DrawSpecificCard(string dinoType, int maxCost = int.MaxValue)
     {
         List<Card> filteredCards = playerDeckManager.playerDeck.FindAll(card => card.dinoType == dinoType && card.cost < maxCost);
+
         if (filteredCards.Count > 0)
         {
             Card drawnCard = DrawAndRemoveRandomCard(filteredCards);
@@ -80,28 +59,36 @@ public class PlayerHand : MonoBehaviour
                 Debug.Log("Specific card added to hand: " + drawnCard.cardName);
                 DisplayCard(drawnCard);
             }
-            else
-            {
-                Debug.LogWarning("No specific card was drawn from the deck.");
-            }
         }
         else
         {
-            Debug.LogWarning($"No cards found with dinoType {dinoType} and cost less than {maxCost}.");
+            Debug.LogWarning($"No cards found with dinoType '{dinoType}' and cost less than {maxCost}.");
+        }
+    }
+
+    Card DrawAndRemoveRandomCard(List<Card> cards)
+    {
+        if (randomCard != null)
+        {
+            return randomCard.DrawAndRemoveRandomCard(cards);
+        }
+        else
+        {
+            Debug.LogError("RandomCard reference is null!");
+            return null;
         }
     }
 
     void DisplayCard(Card card)
     {
-        GameObject newCard = Instantiate(draggableCardPrefab, handPanel);
+        GameObject newCard = Instantiate(cardPrefab, handPanel);
         if (newCard == null)
         {
             Debug.LogError("Failed to instantiate card prefab.");
             return;
         }
 
-        // Set unique identifier for each card instance in the UI
-        newCard.name = $"Card_{card.id}_{Random.Range(0, 10000)}"; // Using a random number to ensure unique names
+        newCard.name = $"Card_{card.id}_{Random.Range(0, 10000)}";
 
         CardViz cardViz = newCard.GetComponent<CardViz>();
         if (cardViz != null)
@@ -117,52 +104,82 @@ public class PlayerHand : MonoBehaviour
         instantiatedCards.Add(newCard);
     }
 
-    Card DrawAndRemoveRandomCard(List<Card> cards)
-    {
-        if (cards.Count > 0)
-        {
-            int randomIndex = Random.Range(0, cards.Count);
-            Card randomCard = cards[randomIndex];
-            cards.RemoveAt(randomIndex);
-            return randomCard;
-        }
-        else
-        {
-            Debug.LogWarning("No more cards left to draw!");
-            return null;
-        }
-    }
-
     public void OnCardHover(GameObject hoveredCard)
     {
+        // Only allow hover effects if no card is currently selected
+        if (selectedCard != null && selectedCard != hoveredCard)
+            return;
+
         foreach (GameObject cardObject in instantiatedCards)
         {
             if (cardObject == hoveredCard)
             {
-                cardObject.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
+                cardObject.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f); // Hover scale
             }
-            else
+            else if (selectedCard == null)
             {
-                cardObject.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
+                cardObject.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f); // Non-hovered scale
             }
         }
     }
 
     public void OnCardHoverExit(GameObject hoveredCard)
     {
+        // Only reset hover effects if no card is currently selected
+        if (selectedCard != null && selectedCard != hoveredCard)
+            return;
+
         foreach (GameObject cardObject in instantiatedCards)
         {
-            cardObject.transform.localScale = Vector3.one;
+            // Reset to default scale unless it's the selected card
+            if (cardObject == selectedCard)
+            {
+                cardObject.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f); // Maintain selected scale
+            }
+            else
+            {
+                cardObject.transform.localScale = Vector3.one; // Default scale
+            }
         }
     }
 
-    public void HideHand()
+    public void OnCardClick(GameObject clickedCard)
     {
-        handPanel.gameObject.SetActive(false);
+        Debug.Log("Card clicked: " + clickedCard.name);
+
+        // Check if the clicked card is currently selected
+        bool isCardSelected = (selectedCard == clickedCard);
+
+        if (isCardSelected)
+        {
+            // If the card is already selected, reset all cards to their default state
+            ResetAllCards();
+        }
+        else
+        {
+            // Select the clicked card and hide all others
+            selectedCard = clickedCard;
+            foreach (GameObject cardObject in instantiatedCards)
+            {
+                if (cardObject == clickedCard)
+                {
+                    cardObject.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f); // Highlight the clicked card
+                }
+                else
+                {
+                    cardObject.SetActive(false); // Hide other cards
+                }
+            }
+        }
     }
 
-    public void ShowHand()
+    private void ResetAllCards()
     {
-        handPanel.gameObject.SetActive(true);
+        selectedCard = null;
+        foreach (GameObject cardObject in instantiatedCards)
+        {
+            cardObject.SetActive(true); // Show all cards
+            cardObject.transform.localScale = Vector3.one; // Reset scale
+        }
     }
 }

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CardEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class CardEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     private PlayerHand playerHand;
 
@@ -18,7 +18,7 @@ public class CardEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExi
     {
         if (playerHand != null)
         {
-            playerHand.OnCardHover(gameObject);
+            playerHand.OnCardHover(gameObject); // Handle hover enter
         }
     }
 
@@ -26,8 +26,15 @@ public class CardEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExi
     {
         if (playerHand != null)
         {
-            playerHand.OnCardHoverExit(gameObject);
+            playerHand.OnCardHoverExit(gameObject); // Handle hover exit
+        }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (playerHand != null)
+        {
+            playerHand.OnCardClick(gameObject); // Handle card click
         }
     }
 }
-

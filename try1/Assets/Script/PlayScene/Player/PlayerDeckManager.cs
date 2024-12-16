@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq; // For LINQ methods like GroupBy
 using UnityEngine;
 
 public class PlayerDeckManager : MonoBehaviour
@@ -32,7 +33,6 @@ public class PlayerDeckManager : MonoBehaviour
             if (randomCard != null)
             {
                 playerDeck.Add(randomCard);
-                Debug.Log("Added card to player deck: " + randomCard.cardName);
             }
             else
             {
@@ -41,7 +41,8 @@ public class PlayerDeckManager : MonoBehaviour
             }
         }
 
-        Debug.Log("Player deck initialized with " + playerDeck.Count + " cards.");
+        Debug.Log("Player deck initialized.");
+        LogDeckComposition();
     }
 
     // Method to draw a random card from the given list
@@ -68,7 +69,8 @@ public class PlayerDeckManager : MonoBehaviour
             int randomIndex = Random.Range(0, playerDeck.Count);
             Card randomCard = playerDeck[randomIndex];
             playerDeck.RemoveAt(randomIndex); // Remove the card from the player deck
-            Debug.Log("Random card drawn from player deck: " + randomCard.cardName);
+            Debug.Log("Random card drawn from player deck.");
+            LogDeckComposition();
             return randomCard;
         }
         else
@@ -82,7 +84,8 @@ public class PlayerDeckManager : MonoBehaviour
     public void ReturnCardToDeck(Card card)
     {
         playerDeck.Add(card);
-        Debug.Log("Returned card to player deck: " + card.cardName);
+        Debug.Log("Returned card to player deck.");
+        LogDeckComposition();
     }
 
     // Method to clear all cards from playerDeck (if needed)
@@ -98,11 +101,23 @@ public class PlayerDeckManager : MonoBehaviour
         if (playerDeck.Contains(card))
         {
             playerDeck.Remove(card);
-            Debug.Log("Removed card from player deck: " + card.cardName);
+            Debug.Log("Removed card from player deck.");
+            LogDeckComposition();
         }
         else
         {
             Debug.LogWarning("Card not found in player deck.");
         }
+    }
+
+    // Logs the composition of the deck as card type counts
+    void LogDeckComposition()
+    {
+        var groupedByType = playerDeck.GroupBy(card => card.dinoType);
+        foreach (var group in groupedByType)
+        {
+            Debug.Log($"Type: {group.Key}, Count: {group.Count()}");
+        }
+        Debug.Log($"Total cards in deck: {playerDeck.Count}");
     }
 }
