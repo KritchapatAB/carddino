@@ -32,11 +32,12 @@ public class BoardManager : MonoBehaviour
     {
         foreach (GameObject slot in slots)
         {
-            if (slot.transform.childCount == 0) // Check if the slot is empty
+            if (slot.transform.childCount == 0)
             {
                 card.transform.SetParent(slot.transform);
-                card.transform.localPosition = Vector3.zero; // Center card in the slot
+                card.transform.localPosition = Vector3.zero; 
                 card.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+                Debug.Log($"Card placed in slot: {slot.name}");
                 return;
             }
         }
@@ -47,7 +48,7 @@ public class BoardManager : MonoBehaviour
     {
         foreach (GameObject slot in playerSlots)
         {
-            if (slot.transform.childCount == 0) // Only allow empty slots
+            if (slot.transform.childCount == 0) 
             {
                 var slotComponent = slot.GetComponent<CardSlot>();
                 if (slotComponent != null)
@@ -69,6 +70,8 @@ public class BoardManager : MonoBehaviour
             }
         }
     }
+
+    
 
     public void ConfirmCardPlacement(GameObject card)
     {

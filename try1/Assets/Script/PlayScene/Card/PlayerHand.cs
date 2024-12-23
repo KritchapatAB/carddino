@@ -87,19 +87,16 @@ public class PlayerHand : MonoBehaviour
 
     public void OnCardClick(GameObject clickedCard)
     {
-        // Check if the card is already selected
         if (selectedCard == clickedCard)
         {
             ResetAllCards();
             return;
         }
 
-        // Select a new card
         selectedCard = clickedCard;
         HighlightSelectedCard(clickedCard);
         Debug.Log($"Card selected: {clickedCard.name}");
 
-        // Enable board slots for placement
         if (boardManager != null)
         {
             boardManager.EnableBoardForPlacement(selectedCard);
@@ -127,44 +124,75 @@ public class PlayerHand : MonoBehaviour
 
         foreach (GameObject cardObject in instantiatedCards)
         {
-            cardObject.SetActive(true); // Make all cards visible again
-            cardObject.transform.localScale = Vector3.one; // Reset scale
+            cardObject.SetActive(true); 
+            cardObject.transform.localScale = Vector3.one;
         }
 
-        Debug.Log("Card selection reset.");
-
-        // Disable all board slots
         if (boardManager != null)
         {
             boardManager.DisableAllSlots();
         }
+
+        Debug.Log("Card selection reset.");
     }
 
     public void OnCardHover(GameObject hoveredCard)
+{
+    // Ignore hover if the card is already placed on the board
+    if (hoveredCard.transform.parent != handPanel) return;
+
+    // Only scale up hovered card if no card is selected
+    if (selectedCard != null && selectedCard != hoveredCard) return;
+
+    foreach (GameObject cardObject in instantiatedCards)
     {
-        // Only scale up hovered card if no card is selected
-        if (selectedCard != null && selectedCard != hoveredCard) return;
-
-        foreach (GameObject cardObject in instantiatedCards)
-        {
-            cardObject.transform.localScale = cardObject == hoveredCard
-                ? new Vector3(1.2f, 1.2f, 1.2f) // Hover scale
-                : new Vector3(0.8f, 0.8f, 0.8f); // Default scale
-        }
+        cardObject.transform.localScale = cardObject == hoveredCard
+            ? new Vector3(1.2f, 1.2f, 1.2f) // Hover scale
+            : new Vector3(0.8f, 0.8f, 0.8f); // Default scale
     }
+}
 
-    public void OnCardHoverExit(GameObject hoveredCard)
+public void OnCardHoverExit(GameObject hoveredCard)
+{
+    // Ignore hover exit if the card is already placed on the board
+    if (hoveredCard.transform.parent != handPanel) return;
+
+    // Reset scale unless a card is selected
+    if (selectedCard != null && selectedCard != hoveredCard) return;
+
+    foreach (GameObject cardObject in instantiatedCards)
     {
-        // Reset scale unless a card is selected
-        if (selectedCard != null && selectedCard != hoveredCard) return;
-
-        foreach (GameObject cardObject in instantiatedCards)
-        {
-            cardObject.transform.localScale = selectedCard == cardObject
-                ? new Vector3(1.2f, 1.2f, 1.2f) // Maintain selected scale
-                : Vector3.one; // Default scale
-        }
+        cardObject.transform.localScale = selectedCard == cardObject
+            ? new Vector3(1.2f, 1.2f, 1.2f) // Maintain selected scale
+            : Vector3.one; // Default scale
     }
+}
+
+    // public void OnCardHover(GameObject hoveredCard)
+    // {
+    //     // Only scale up hovered card if no card is selected
+    //     if (selectedCard != null && selectedCard != hoveredCard) return;
+
+    //     foreach (GameObject cardObject in instantiatedCards)
+    //     {
+    //         cardObject.transform.localScale = cardObject == hoveredCard
+    //             ? new Vector3(1.2f, 1.2f, 1.2f) // Hover scale
+    //             : new Vector3(0.8f, 0.8f, 0.8f); // Default scale
+    //     }
+    // }
+
+    // public void OnCardHoverExit(GameObject hoveredCard)
+    // {
+    //     // Reset scale unless a card is selected
+    //     if (selectedCard != null && selectedCard != hoveredCard) return;
+
+    //     foreach (GameObject cardObject in instantiatedCards)
+    //     {
+    //         cardObject.transform.localScale = selectedCard == cardObject
+    //             ? new Vector3(1.2f, 1.2f, 1.2f) // Maintain selected scale
+    //             : Vector3.one; // Default scale
+    //     }
+    // }
 
     public GameObject GetSelectedCard()
     {

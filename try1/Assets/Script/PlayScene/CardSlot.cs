@@ -1,37 +1,14 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
-public class CardSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+public class CardSlot : MonoBehaviour, IPointerClickHandler
 {
-    private Image slotHighlight;
     private PlayerHand playerHand;
     private GameObject placedCard = null;
 
     void Start()
     {
         playerHand = FindObjectOfType<PlayerHand>();
-        slotHighlight = GetComponent<Image>();
-        if (slotHighlight == null)
-        {
-            Debug.LogError("CardSlot is missing an Image component for highlighting!");
-        }
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        if (placedCard == null && slotHighlight != null)
-        {
-            slotHighlight.color = Color.green; // Highlight the slot
-        }
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        if (slotHighlight != null)
-        {
-            slotHighlight.color = Color.white; // Reset highlight
-        }
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -60,18 +37,12 @@ public class CardSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void EnablePlacementMode()
     {
-        if (placedCard == null && slotHighlight != null)
-        {
-            slotHighlight.color = Color.green; // Highlight the slot for placement
-        }
+        // Placeholder for enabling placement mode (if needed in the future)
     }
 
     public void DisablePlacementMode()
     {
-        if (slotHighlight != null)
-        {
-            slotHighlight.color = Color.white; // Reset highlight
-        }
+        // Placeholder for disabling placement mode (if needed in the future)
     }
 
     void PlaceCard(GameObject card)
@@ -80,10 +51,5 @@ public class CardSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         card.transform.SetParent(transform);
         card.transform.localPosition = Vector3.zero;
         card.transform.localScale = Vector3.one;
-
-        if (slotHighlight != null)
-        {
-            slotHighlight.color = Color.white; // Reset the highlight
-        }
     }
 }
