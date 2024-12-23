@@ -43,17 +43,36 @@ public class BoardManager : MonoBehaviour
         Debug.LogWarning("No empty slots available.");
     }
 
-    public void ShiftEnemyCardToActiveArea()
+    public void EnableBoardForPlacement(GameObject cardToPlace)
     {
-        foreach (GameObject reserveSlot in enemyReserveSlots)
+        foreach (GameObject slot in playerSlots)
         {
-            if (reserveSlot.transform.childCount > 0) // Check if there's a card
+            if (slot.transform.childCount == 0) // Only allow empty slots
             {
-                GameObject card = reserveSlot.transform.GetChild(0).gameObject;
-                PlaceCardInSlot(card, enemyActiveSlots); // Move it to active area
-                return;
+                var slotComponent = slot.GetComponent<CardSlot>();
+                if (slotComponent != null)
+                {
+                    slotComponent.EnablePlacementMode();
+                }
             }
         }
-        Debug.Log("No cards in reserve to move.");
+    }
+
+    public void DisableAllSlots()
+    {
+        foreach (GameObject slot in playerSlots)
+        {
+            var slotComponent = slot.GetComponent<CardSlot>();
+            if (slotComponent != null)
+            {
+                slotComponent.DisablePlacementMode();
+            }
+        }
+    }
+
+    public void ConfirmCardPlacement(GameObject card)
+    {
+        PlaceCardInSlot(card, playerSlots); // Use the existing method to handle placement
+        DisableAllSlots();                 // Disable placement mode after card is placed
     }
 }
