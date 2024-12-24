@@ -87,6 +87,9 @@ public class PlayerHand : MonoBehaviour
 
     public void OnCardClick(GameObject clickedCard)
     {
+        // Ignore click if the card is not in the player's hand
+        if (clickedCard.transform.parent != handPanel) return;
+
         if (selectedCard == clickedCard)
         {
             ResetAllCards();
@@ -102,6 +105,7 @@ public class PlayerHand : MonoBehaviour
             boardManager.EnableBoardForPlacement(selectedCard);
         }
     }
+
 
     void HighlightSelectedCard(GameObject clickedCard)
     {
@@ -167,32 +171,6 @@ public class PlayerHand : MonoBehaviour
                 : Vector3.one; // Default scale
         }
     }
-
-    // public void OnCardHover(GameObject hoveredCard)
-    // {
-    //     // Only scale up hovered card if no card is selected
-    //     if (selectedCard != null && selectedCard != hoveredCard) return;
-
-    //     foreach (GameObject cardObject in instantiatedCards)
-    //     {
-    //         cardObject.transform.localScale = cardObject == hoveredCard
-    //             ? new Vector3(1.2f, 1.2f, 1.2f) // Hover scale
-    //             : new Vector3(0.8f, 0.8f, 0.8f); // Default scale
-    //     }
-    // }
-
-    // public void OnCardHoverExit(GameObject hoveredCard)
-    // {
-    //     // Reset scale unless a card is selected
-    //     if (selectedCard != null && selectedCard != hoveredCard) return;
-
-    //     foreach (GameObject cardObject in instantiatedCards)
-    //     {
-    //         cardObject.transform.localScale = selectedCard == cardObject
-    //             ? new Vector3(1.2f, 1.2f, 1.2f) // Maintain selected scale
-    //             : Vector3.one; // Default scale
-    //     }
-    // }
 
     public GameObject GetSelectedCard()
     {

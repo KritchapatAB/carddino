@@ -71,6 +71,37 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+    public bool IsCardOnBoard(Transform cardTransform)
+    {
+        // Check if the card's parent is one of the player board slots
+        foreach (GameObject slot in playerSlots)
+        {
+            if (cardTransform.parent == slot.transform)
+            {
+                return true;
+            }
+        }
+        return false; // Card is not onboard
+    }
+
+    public void OnBoardCardHover(GameObject boardCard)
+    {
+        Debug.Log($"Hovering over onboard card: {boardCard.name}");
+        boardCard.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f); // Slight hover effect
+    }
+
+    public void OnBoardCardHoverExit(GameObject boardCard)
+    {
+        Debug.Log($"Stopped hovering over onboard card: {boardCard.name}");
+        boardCard.transform.localScale = Vector3.one; // Reset to default scale
+    }
+    
+    public void OnBoardCardClick(GameObject boardCard)
+    {
+        // Handle click for onboard cards
+        Debug.Log($"Clicked onboard card: {boardCard.name}");
+        // Additional logic for onboard card interactions
+    }
     
 
     public void ConfirmCardPlacement(GameObject card)
