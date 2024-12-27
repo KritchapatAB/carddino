@@ -3,6 +3,7 @@ using UnityEngine.EventSystems;
 
 public class CardEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
+<<<<<<< Updated upstream
     private PlayerHand playerHand;
     private BoardManager boardManager;
 
@@ -44,10 +45,16 @@ public class CardEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExi
         {
             boardManager.OnBoardCardHover(gameObject); // Handle hover enter for onboard cards
         }
+=======
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        FindObjectOfType<PlayerHand>()?.OnCardHover(gameObject);
+>>>>>>> Stashed changes
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+<<<<<<< Updated upstream
         if (IsInPlayerHand() && playerHand != null)
         {
             playerHand.OnCardHoverExit(gameObject); // Handle hover exit for hand cards
@@ -56,10 +63,14 @@ public class CardEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExi
         {
             boardManager.OnBoardCardHoverExit(gameObject); // Handle hover exit for onboard cards
         }
+=======
+        FindObjectOfType<PlayerHand>()?.OnCardHoverExit(gameObject);
+>>>>>>> Stashed changes
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
+<<<<<<< Updated upstream
         if (IsInPlayerHand() && playerHand != null)
         {
             playerHand.OnCardClick(gameObject); // Handle click for hand cards
@@ -68,5 +79,8 @@ public class CardEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExi
         {
             boardManager.OnBoardCardClick(gameObject); // Handle click for onboard cards
         }
+=======
+        FindObjectOfType<PlayerHand>()?.OnCardClick(gameObject);
+>>>>>>> Stashed changes
     }
 }

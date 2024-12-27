@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -13,21 +11,7 @@ public class CardViz : MonoBehaviour
     public Image dinoImage;
     public Image dinoClass;
 
-    private Card card;  // Assuming you have a Card class defined
-
-    public void LoadCard(Card cardData)
-    {
-        if (cardData == null)
-        {
-            Debug.LogWarning("Null card data provided.");
-            return;
-        }
-
-        card = cardData;
-        UpdateCardUI();
-    }
-
-    private void UpdateCardUI()
+    public void LoadCard(Card card)
     {
         cardNameText.text = card.cardName;
         costText.text = card.cost.ToString();
@@ -37,7 +21,3 @@ public class CardViz : MonoBehaviour
         dinoClass.sprite = card.cardClass;
     }
 }
-
-
-
-

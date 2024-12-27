@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aff16f758dcaa234a8467935521aaea7, type: 3}
+  m_Name: CardID4
+  m_EditorClassIdentifier: 
+  id: 4
+  cardName: Parasaur
+  cardClass: {fileID: 21300000, guid: 72c1bc3d3c00fdc42980cc837d01deea, type: 3}
+  cost: 1
+  damage: 0
+  health: 3
+  dinoType: Defender
+  dinoImage: {fileID: 21300000, guid: 29a35b030f20d4c4e975f40299d1ae03, type: 3}

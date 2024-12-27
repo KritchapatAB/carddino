@@ -35,30 +35,23 @@ public class PlayerHand : MonoBehaviour
         DrawInitialHand();
     }
 
-    void DrawInitialHand()
+    public void DrawInitialHand()
     {
-        for (int i = 0; i < 3; i++) DrawSpecificCard("Normal");
-        DrawSpecificCard("Attacker", 4);
-        DrawSpecificCard("Defender", 4);
+        DrawCardsByType("Normal", 3);
+        DrawCardsByType("Attacker", 1, 4);
+        DrawCardsByType("Defender", 1, 4);
     }
 
-    void DrawSpecificCard(string dinoType, int maxCost = int.MaxValue)
+    private void DrawCardsByType(string dinoType, int count, int maxCost = int.MaxValue)
     {
-        var filteredCards = playerDeckManager.playerDeck.FindAll(card => card.dinoType == dinoType && card.cost <= maxCost);
-
-        if (filteredCards.Count > 0)
+        for (int i = 0; i < count; i++)
         {
-            Card drawnCard = DrawAndRemoveRandomCard(filteredCards);
-            if (drawnCard != null)
+            var card = playerDeckManager.DrawRandomCardByTypeAndCost(dinoType, maxCost);
+            if (card != null)
             {
-                playerHand.Add(drawnCard);
-                playerDeckManager.RemoveCardFromDeck(drawnCard);
-                DisplayCard(drawnCard);
+                playerHand.Add(card);
+                DisplayCard(card);
             }
-        }
-        else
-        {
-            Debug.LogWarning($"No cards found with dinoType '{dinoType}' and cost <= {maxCost}.");
         }
     }
 

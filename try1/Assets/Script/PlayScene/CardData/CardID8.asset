@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aff16f758dcaa234a8467935521aaea7, type: 3}
+  m_Name: CardID8
+  m_EditorClassIdentifier: 
+  id: 7
+  cardName: Quetzalcoatlus
+  cardClass: {fileID: 21300000, guid: 72c1bc3d3c00fdc42980cc837d01deea, type: 3}
+  cost: 2
+  damage: 0
+  health: 6
+  dinoType: Defender
+  dinoImage: {fileID: 21300000, guid: 39a4821c2455ec4498ca3fbeae262540, type: 3}
