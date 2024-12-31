@@ -3,43 +3,46 @@ using UnityEngine;
 
 public class PlayerHand : MonoBehaviour
 {
-    public List<Card> playerHand = new List<Card>();
-    public PlayerDeckManager playerDeckManager;
-    public RandomCard randomCard; // Reference to RandomCard component
-    public int handSize = 5;
-    public GameObject cardPrefab;
-    public Transform handPanel;
+    public List<Card> playerHand = new List<Card>(); // Logical state of the player's hand
+    public GameObject cardPrefab;                   // Prefab for card UI
+    public Transform handPanel;                     // Parent container for card UI in the hand
+    public PlayerDeckManager playerDeckManager;     // Reference to the PlayerDeckManager
 
-    private List<GameObject> instantiatedCards = new List<GameObject>();
-    private GameObject selectedCard = null; // Tracks the currently selected card
-    private BoardManager boardManager;
+    private List<GameObject> instantiatedCards = new List<GameObject>(); // Instantiated card objects
+
+    private GameObject selectedCard; // The currently selected card
+    private Vector3 originalScale; // Original scale of the selected card
+    public BoardManager boardManager; // Reference to the BoardManager script
 
     void Start()
     {
-        // Ensure all required components are assigned
-        if (playerDeckManager == null || randomCard == null)
+        if (playerDeckManager != null)
         {
-            Debug.LogError("PlayerDeckManager or RandomCard component is missing. Please assign them in the inspector.");
-            return;
+            // Subscribe to the OnDeckInitialized event
+            playerDeckManager.OnDeckInitialized += DrawInitialHand;
         }
-
-        boardManager = FindObjectOfType<BoardManager>();
-        if (boardManager == null)
+        else
         {
-            Debug.LogError("BoardManager not found in the scene. Make sure it is added and active.");
-            return;
+            Debug.LogError("PlayerDeckManager is not assigned in PlayerHand.");
         }
-
-        // Initialize deck and draw cards
-        playerDeckManager.InitializePlayerDeck();
-        DrawInitialHand();
     }
 
+    void OnDestroy()
+    {
+        // Unsubscribe to avoid memory leaks
+        if (playerDeckManager != null)
+        {
+            playerDeckManager.OnDeckInitialized -= DrawInitialHand;
+        }
+    }
+
+    //region starthand
     public void DrawInitialHand()
     {
-        DrawCardsByType("Normal", 3);
-        DrawCardsByType("Attacker", 1, 4);
-        DrawCardsByType("Defender", 1, 4);
+        // Draw initial cards
+        DrawCardsByType("Normal", 3);    // Draw 3 Normal cards
+        DrawCardsByType("Attacker", 1, 4); // Draw 1 Attacker card with max cost of 4
+        DrawCardsByType("Defender", 1, 4); // Draw 1 Defender card with max cost of 4
     }
 
     private void DrawCardsByType(string dinoType, int count, int maxCost = int.MaxValue)
@@ -47,126 +50,162 @@ public class PlayerHand : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             var card = playerDeckManager.DrawRandomCardByTypeAndCost(dinoType, maxCost);
+
             if (card != null)
             {
-                playerHand.Add(card);
-                DisplayCard(card);
+                playerHand.Add(card);  // Add to the player's hand list
+                DrawCard(card);        // Instantiate and display the card
+            }
+            else
+            {
+                Debug.LogWarning($"Failed to draw a card of type {dinoType} with cost <= {maxCost}.");
             }
         }
     }
 
-    Card DrawAndRemoveRandomCard(List<Card> cards)
+    public void DrawCard(Card card)
     {
-        return randomCard != null ? randomCard.DrawAndRemoveRandomCard(cards) : null;
-    }
-
-    void DisplayCard(Card card)
-    {
-        GameObject newCard = Instantiate(cardPrefab, handPanel);
+        GameObject newCard = Instantiate(cardPrefab, handPanel); // Create the card in the hand
         CardViz cardViz = newCard.GetComponent<CardViz>();
 
         if (cardViz != null)
         {
-            cardViz.LoadCard(card);
-            Debug.Log($"Displayed card: {card.cardName}");
-        }
-        else
-        {
-            Debug.LogError("CardViz component missing on card prefab.");
+            cardViz.LoadCard(card); // Populate the visual details from Card data
         }
 
-        instantiatedCards.Add(newCard);
+        CardInteractionHandler interactionHandler = newCard.GetComponent<CardInteractionHandler>();
+        if (interactionHandler != null)
+        {
+            interactionHandler.cardData = card; // Assign the CardData to the interaction handler
+            interactionHandler.SetCardState(CardInteractionHandler.CardState.InHand);
+        }
+
+        instantiatedCards.Add(newCard); // Add the card to the list of instantiated cards
     }
 
-    public void OnCardClick(GameObject clickedCard)
+    //endregion
+
+    // public void SelectCard(GameObject card)
+    // {
+    //     if (selectedCard == card)
+    //     {
+    //         // Deselect the card if clicked again
+    //         DeselectCard();
+    //         return;
+    //     }
+
+    //     // If another card is already selected, deselect it first
+    //     if (selectedCard != null)
+    //     {
+    //         DeselectCard();
+    //     }
+
+    //     selectedCard = card; // Set the clicked card as selected
+
+    //     // Scale up the selected card
+    //     CardInteractionHandler interactionHandler = selectedCard.GetComponent<CardInteractionHandler>();
+    //     if (interactionHandler != null)
+    //     {
+    //         interactionHandler.DisableHoverEffect(); // Disable hover effects for the selected card
+    //         interactionHandler.ScaleUpForSelection(); // Scale up the card using the selected multiplier
+    //     }
+
+    //     Card cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
+
+    //     if (cardData == null)
+    //     {
+    //         Debug.LogError("CardData is null for the selected card.");
+    //         return;
+    //     }
+
+    //     if (cardData.cost == 0)
+    //     {
+    //         Debug.Log("Selected card cost is 0, enabling direct placement.");
+    //         boardManager?.HighlightEmptySlots();
+    //     }
+    //     else
+    //     {
+    //         Debug.Log($"Selected card cost is {cardData.cost}, starting sacrifice phase.");
+    //         boardManager?.EnableSacrificePhase(cardData.cost);
+    //     }
+    // }
+
+    public void SelectCard(GameObject card)
+{
+    if (selectedCard == card)
     {
-        // Ignore click if the card is not in the player's hand
-        if (clickedCard.transform.parent != handPanel) return;
+        DeselectCard(); // Deselect if clicked again
+        return;
+    }
 
-        if (selectedCard == clickedCard)
+    if (selectedCard != null)
+    {
+        DeselectCard(); // Deselect the previous card
+    }
+
+    selectedCard = card; // Set the clicked card as selected
+
+    CardInteractionHandler interactionHandler = selectedCard.GetComponent<CardInteractionHandler>();
+    if (interactionHandler != null)
+    {
+        interactionHandler.DisableHoverEffect();
+        interactionHandler.ScaleUpForSelection();
+    }
+
+    Card cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
+
+    if (cardData == null)
+    {
+        Debug.LogError("CardData is null for the selected card.");
+        return;
+    }
+
+    if (cardData.cost == 0)
+    {
+        Debug.Log("Selected card cost is 0, enabling direct placement.");
+        boardManager?.HighlightEmptySlots();
+    }
+    else
+    {
+        Debug.Log($"Selected card cost is {cardData.cost}, starting sacrifice phase.");
+        boardManager?.EnableSacrificePhase(cardData.cost, selectedCard);
+    }
+}
+
+
+
+    public void PlaceSelectedCard(GameObject slot)
+    {
+        if (selectedCard != null)
         {
-            ResetAllCards();
-            return;
-        }
-
-        selectedCard = clickedCard;
-        HighlightSelectedCard(clickedCard);
-        Debug.Log($"Card selected: {clickedCard.name}");
-
-        if (boardManager != null)
-        {
-            boardManager.EnableBoardForPlacement(selectedCard);
+            slot.GetComponent<CardSlot>().SetOccupied(true); // Mark the slot as occupied
+            selectedCard.transform.SetParent(slot.transform);
+            selectedCard.transform.localPosition = Vector3.zero;
+            
+            // Reset the card's scale to its original size
+            selectedCard.transform.localScale = Vector3.one; // Ensure it resets to normal size
+            
+            selectedCard.GetComponent<CardInteractionHandler>().SetCardState(CardInteractionHandler.CardState.OnBoard);
+            selectedCard = null; // Clear the selection
         }
     }
 
+    
 
-    void HighlightSelectedCard(GameObject clickedCard)
+    private void DeselectCard()
     {
-        foreach (GameObject cardObject in instantiatedCards)
+        if (selectedCard != null)
         {
-            if (cardObject == clickedCard)
+            Debug.Log("Deselecting card.");
+            selectedCard.transform.localScale = originalScale; // Reset its scale
+
+            CardInteractionHandler interactionHandler = selectedCard.GetComponent<CardInteractionHandler>();
+            if (interactionHandler != null)
             {
-                cardObject.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f); // Highlight selected card
+                interactionHandler.EnableHoverEffect(); // Re-enable hover effects for the deselected card
             }
-            else
-            {
-                cardObject.SetActive(false); // Hide other cards
-            }
+
+            selectedCard = null; // Clear the selection
         }
-    }
-
-    public void ResetAllCards()
-    {
-        selectedCard = null;
-
-        foreach (GameObject cardObject in instantiatedCards)
-        {
-            cardObject.SetActive(true); 
-            cardObject.transform.localScale = Vector3.one;
-        }
-
-        if (boardManager != null)
-        {
-            boardManager.DisableAllSlots();
-        }
-
-        Debug.Log("Card selection reset.");
-    }
-
-    public void OnCardHover(GameObject hoveredCard)
-    {
-        // Ignore hover if the card is already placed on the board
-        if (hoveredCard.transform.parent != handPanel) return;
-
-        // Only scale up hovered card if no card is selected
-        if (selectedCard != null && selectedCard != hoveredCard) return;
-
-        foreach (GameObject cardObject in instantiatedCards)
-        {
-            cardObject.transform.localScale = cardObject == hoveredCard
-                ? new Vector3(1.2f, 1.2f, 1.2f) // Hover scale
-                : new Vector3(0.8f, 0.8f, 0.8f); // Default scale
-        }
-    }
-
-    public void OnCardHoverExit(GameObject hoveredCard)
-    {
-        // Ignore hover exit if the card is already placed on the board
-        if (hoveredCard.transform.parent != handPanel) return;
-
-        // Reset scale unless a card is selected
-        if (selectedCard != null && selectedCard != hoveredCard) return;
-
-        foreach (GameObject cardObject in instantiatedCards)
-        {
-            cardObject.transform.localScale = selectedCard == cardObject
-                ? new Vector3(1.2f, 1.2f, 1.2f) // Maintain selected scale
-                : Vector3.one; // Default scale
-        }
-    }
-
-    public GameObject GetSelectedCard()
-    {
-        return selectedCard;
     }
 }

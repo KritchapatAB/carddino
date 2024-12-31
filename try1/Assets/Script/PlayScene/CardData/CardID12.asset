@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 12
   cardName: Deinonychus
-  cardClass: {fileID: 0}
+  cardClass: {fileID: 21300000, guid: 460f31cba1b4f7145abf29a8436f49fd, type: 3}
   cost: 1
   damage: 2
   health: 1

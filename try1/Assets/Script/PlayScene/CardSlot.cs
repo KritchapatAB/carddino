@@ -3,53 +3,35 @@ using UnityEngine.EventSystems;
 
 public class CardSlot : MonoBehaviour, IPointerClickHandler
 {
-    private PlayerHand playerHand;
-    private GameObject placedCard = null;
-
-    void Start()
-    {
-        playerHand = FindObjectOfType<PlayerHand>();
-    }
+    private bool isOccupied = false;
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (placedCard != null)
+        PlayerHand playerHand = FindObjectOfType<PlayerHand>();
+        if (playerHand != null && !isOccupied) // Ensure the slot is not occupied
         {
-            Debug.Log("Slot already occupied!");
-            return;
-        }
-
-        if (playerHand != null)
-        {
-            GameObject selectedCard = playerHand.GetSelectedCard();
-            if (selectedCard != null)
-            {
-                PlaceCard(selectedCard);
-                playerHand.ResetAllCards();
-                Debug.Log("Card placed on the slot.");
-            }
-            else
-            {
-                Debug.Log("No card selected. Please select a card before clicking a slot.");
-            }
+            playerHand.PlaceSelectedCard(gameObject);
+            ResetSlot(); // Reset visual feedback after placement
         }
     }
 
-    public void EnablePlacementMode()
+    public void HighlightSlot()
     {
-        // Placeholder for enabling placement mode (if needed in the future)
+        GetComponent<SpriteRenderer>().color = Color.green; // Add highlight
     }
 
-    public void DisablePlacementMode()
+    public void ResetSlot()
     {
-        // Placeholder for disabling placement mode (if needed in the future)
+        GetComponent<SpriteRenderer>().color = Color.white; // Reset highlight
     }
 
-    void PlaceCard(GameObject card)
+    public bool IsOccupied()
     {
-        placedCard = card;
-        card.transform.SetParent(transform);
-        card.transform.localPosition = Vector3.zero;
-        card.transform.localScale = Vector3.one;
+        return isOccupied;
+    }
+
+    public void SetOccupied(bool occupied)
+    {
+        isOccupied = occupied;
     }
 }

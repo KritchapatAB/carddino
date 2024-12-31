@@ -1,112 +1,171 @@
+// using UnityEngine;
+// using System.Collections.Generic;
+
+// public class BoardManager : MonoBehaviour
+// {
+//     public List<GameObject> playerSlots = new List<GameObject>();
+//     private List<GameObject> cardsToSacrifice = new List<GameObject>();
+//     private int requiredSacrifices;
+
+//     private void Start()
+//     {
+//         InitializePlayerSlots();
+//     }
+
+//     private void InitializePlayerSlots()
+//     {
+//         // Automatically populate playerSlots from child GameObjects
+//         Transform playerArea = GameObject.Find("PlayerArea").transform; // Ensure PlayerArea is named correctly
+//         foreach (Transform slot in playerArea)
+//         {
+//             CardSlot cardSlot = slot.GetComponent<CardSlot>();
+//             if (cardSlot != null)
+//             {
+//                 playerSlots.Add(slot.gameObject);
+//             }
+//         }
+//         Debug.Log($"Player slots initialized: {playerSlots.Count} slots found.");
+//     }
+
+//     public void HighlightEmptySlots()
+//     {
+//         foreach (var slot in playerSlots)
+//         {
+//             if (!slot.GetComponent<CardSlot>().IsOccupied())
+//             {
+//                 slot.GetComponent<CardSlot>().HighlightSlot(); // Add visual feedback
+//             }
+//         }
+//     }
+
+//     public void EnableSacrificePhase(int cost)
+//     {
+//         requiredSacrifices = cost;
+//         Debug.Log($"Sacrifice phase started. Need {cost} cards.");
+//         HighlightAvailableCards();
+//     }
+
+//     private void HighlightAvailableCards()
+//     {
+//         foreach (var card in FindObjectsOfType<CardInteractionHandler>())
+//         {
+//             if (card.currentState == CardInteractionHandler.CardState.OnBoard)
+//             {
+//                 card.Highlight(); // Highlight available cards for sacrifice
+//             }
+//         }
+//     }
+
+//     public void SelectCardForSacrifice(GameObject card)
+//     {
+//         if (cardsToSacrifice.Contains(card))
+//         {
+//             cardsToSacrifice.Remove(card);
+//             card.GetComponent<CardInteractionHandler>().Deselect();
+//         }
+//         else if (cardsToSacrifice.Count < requiredSacrifices)
+//         {
+//             cardsToSacrifice.Add(card);
+//             card.GetComponent<CardInteractionHandler>().Highlight();
+//         }
+
+//         if (cardsToSacrifice.Count == requiredSacrifices)
+//         {
+//             ProceedToPlacement();
+//         }
+//     }
+
+//     public void ProceedToPlacement()
+//     {
+//         foreach (var card in cardsToSacrifice)
+//         {
+//             Destroy(card);
+//         }
+//         cardsToSacrifice.Clear();
+//         HighlightEmptySlots();
+//     }
+// }
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections.Generic;
+using TMPro;
 
 public class BoardManager : MonoBehaviour
 {
-    public Transform playerArea;       // Player slots container
-    public Transform enemyActiveArea; // Enemy active slots container
-    public Transform enemyReserveArea; // Enemy reserve slots container
+    public List<GameObject> playerSlots = new List<GameObject>(); // Player slots
+    private List<GameObject> cardsToSacrifice = new List<GameObject>(); // Cards selected for sacrifice
+    private int requiredSacrifices;
+    private GameObject cardToPlace; // Card being placed after sacrifices
+    public TextMeshProUGUI sacrificeProgressText;
 
-    public GameObject cardPrefab;     // Prefab for cards
-    public List<GameObject> playerSlots = new List<GameObject>();
-    public List<GameObject> enemyActiveSlots = new List<GameObject>();
-    public List<GameObject> enemyReserveSlots = new List<GameObject>();
-
-    void Start()
+    public void EnableSacrificePhase(int cost, GameObject card)
     {
-        InitializeSlots(playerArea, playerSlots);
-        InitializeSlots(enemyActiveArea, enemyActiveSlots);
-        InitializeSlots(enemyReserveArea, enemyReserveSlots);
+        requiredSacrifices = cost;
+        cardToPlace = card;
+        Debug.Log($"Sacrifice phase started. Need {cost} sacrifices for card: {card.name}");
+        HighlightAvailableCards(); // Highlight cards on the board that can be sacrificed
     }
 
-    void InitializeSlots(Transform area, List<GameObject> slotList)
+    private void HighlightAvailableCards()
     {
-        foreach (Transform slot in area)
+        foreach (var card in FindObjectsOfType<CardInteractionHandler>())
         {
-            slotList.Add(slot.gameObject);
-        }
-    }
-
-    public void PlaceCardInSlot(GameObject card, List<GameObject> slots)
-    {
-        foreach (GameObject slot in slots)
-        {
-            if (slot.transform.childCount == 0)
+            if (card.currentState == CardInteractionHandler.CardState.OnBoard)
             {
-                card.transform.SetParent(slot.transform);
-                card.transform.localPosition = Vector3.zero; 
-                card.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
-                Debug.Log($"Card placed in slot: {slot.name}");
-                return;
-            }
-        }
-        Debug.LogWarning("No empty slots available.");
-    }
-
-    public void EnableBoardForPlacement(GameObject cardToPlace)
-    {
-        foreach (GameObject slot in playerSlots)
-        {
-            if (slot.transform.childCount == 0) 
-            {
-                var slotComponent = slot.GetComponent<CardSlot>();
-                if (slotComponent != null)
-                {
-                    slotComponent.EnablePlacementMode();
-                }
+                card.Highlight(); // Visual feedback for sacrifice availability
             }
         }
     }
 
-    public void DisableAllSlots()
+
+    public void ProceedToPlacement()
     {
-        foreach (GameObject slot in playerSlots)
+        Debug.Log($"Proceeding to placement. Sacrificing {cardsToSacrifice.Count} cards.");
+        
+        foreach (var card in cardsToSacrifice)
         {
-            var slotComponent = slot.GetComponent<CardSlot>();
-            if (slotComponent != null)
+            Destroy(card); // Remove sacrificed cards
+        }
+
+        cardsToSacrifice.Clear();
+
+        if (cardToPlace != null)
+        {
+            HighlightEmptySlots(); // Allow placement of the card
+        }
+    }
+
+    public void HighlightEmptySlots()
+    {
+        foreach (var slot in playerSlots)
+        {
+            if (!slot.GetComponent<CardSlot>().IsOccupied())
             {
-                slotComponent.DisablePlacementMode();
+                slot.GetComponent<CardSlot>().HighlightSlot(); // Visual feedback for empty slots
             }
         }
     }
 
-    public bool IsCardOnBoard(Transform cardTransform)
+    public void SelectCardForSacrifice(GameObject card)
+{
+    if (cardsToSacrifice.Contains(card))
     {
-        // Check if the card's parent is one of the player board slots
-        foreach (GameObject slot in playerSlots)
-        {
-            if (cardTransform.parent == slot.transform)
-            {
-                return true;
-            }
-        }
-        return false; // Card is not onboard
+        cardsToSacrifice.Remove(card);
+        card.GetComponent<CardInteractionHandler>().Deselect();
+    }
+    else if (cardsToSacrifice.Count < requiredSacrifices)
+    {
+        cardsToSacrifice.Add(card);
+        card.GetComponent<CardInteractionHandler>().Highlight();
     }
 
-    public void OnBoardCardHover(GameObject boardCard)
+    if (sacrificeProgressText != null)
     {
-        Debug.Log($"Hovering over onboard card: {boardCard.name}");
-        boardCard.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f); // Slight hover effect
+        sacrificeProgressText.text = $"{cardsToSacrifice.Count}/{requiredSacrifices} sacrifices selected";
     }
 
-    public void OnBoardCardHoverExit(GameObject boardCard)
+    if (cardsToSacrifice.Count == requiredSacrifices)
     {
-        Debug.Log($"Stopped hovering over onboard card: {boardCard.name}");
-        boardCard.transform.localScale = Vector3.one; // Reset to default scale
+        ProceedToPlacement();
     }
-    
-    public void OnBoardCardClick(GameObject boardCard)
-    {
-        // Handle click for onboard cards
-        Debug.Log($"Clicked onboard card: {boardCard.name}");
-        // Additional logic for onboard card interactions
-    }
-    
-
-    public void ConfirmCardPlacement(GameObject card)
-    {
-        PlaceCardInSlot(card, playerSlots); // Use the existing method to handle placement
-        DisableAllSlots();                 // Disable placement mode after card is placed
-    }
+}
 }

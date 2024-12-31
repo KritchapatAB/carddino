@@ -27,8 +27,13 @@ public class RandomCard : MonoBehaviour
             int randomIndex = Random.Range(0, cards.Count);
             Card randomCard = cards[randomIndex];
             cards.RemoveAt(randomIndex);
+            Debug.Log("Random card drawn and removed: " + randomCard.cardName);
             return randomCard;
         }
-        return null;
+        else
+        {
+            Debug.LogWarning("No more cards left to draw!");
+            return null;
+        }
     }
 }

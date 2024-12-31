@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aff16f758dcaa234a8467935521aaea7, type: 3}
   m_Name: CardID17
   m_EditorClassIdentifier: 
-  id: 0
-  cardName: 
-  cardClass: {fileID: 0}
-  cost: 0
-  damage: 0
-  health: 0
+  id: 17
+  cardName: Mosasaurus
+  cardClass: {fileID: 21300000, guid: 460f31cba1b4f7145abf29a8436f49fd, type: 3}
+  cost: 3
+  damage: 2
+  health: 6
   dinoType: Attacker
-  dinoImage: {fileID: 0}
+  dinoImage: {fileID: 21300000, guid: d52c2db40401f7f438eb01a08e726fac, type: 3}
