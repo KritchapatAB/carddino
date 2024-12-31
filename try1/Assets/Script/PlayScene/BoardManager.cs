@@ -1,48 +1,21 @@
 // using UnityEngine;
 // using System.Collections.Generic;
+// using TMPro;
 
 // public class BoardManager : MonoBehaviour
 // {
-//     public List<GameObject> playerSlots = new List<GameObject>();
-//     private List<GameObject> cardsToSacrifice = new List<GameObject>();
+//     public List<GameObject> playerSlots = new List<GameObject>(); // Player slots
+//     private List<GameObject> cardsToSacrifice = new List<GameObject>(); // Cards selected for sacrifice
 //     private int requiredSacrifices;
+//     private GameObject cardToPlace; // Card being placed after sacrifices
+//     public TextMeshProUGUI sacrificeProgressText;
 
-//     private void Start()
-//     {
-//         InitializePlayerSlots();
-//     }
-
-//     private void InitializePlayerSlots()
-//     {
-//         // Automatically populate playerSlots from child GameObjects
-//         Transform playerArea = GameObject.Find("PlayerArea").transform; // Ensure PlayerArea is named correctly
-//         foreach (Transform slot in playerArea)
-//         {
-//             CardSlot cardSlot = slot.GetComponent<CardSlot>();
-//             if (cardSlot != null)
-//             {
-//                 playerSlots.Add(slot.gameObject);
-//             }
-//         }
-//         Debug.Log($"Player slots initialized: {playerSlots.Count} slots found.");
-//     }
-
-//     public void HighlightEmptySlots()
-//     {
-//         foreach (var slot in playerSlots)
-//         {
-//             if (!slot.GetComponent<CardSlot>().IsOccupied())
-//             {
-//                 slot.GetComponent<CardSlot>().HighlightSlot(); // Add visual feedback
-//             }
-//         }
-//     }
-
-//     public void EnableSacrificePhase(int cost)
+//     public void EnableSacrificePhase(int cost, GameObject card)
 //     {
 //         requiredSacrifices = cost;
-//         Debug.Log($"Sacrifice phase started. Need {cost} cards.");
-//         HighlightAvailableCards();
+//         cardToPlace = card;
+//         Debug.Log($"Sacrifice phase started. Need {cost} sacrifices for card: {card.name}");
+//         HighlightAvailableCards(); // Highlight cards on the board that can be sacrificed
 //     }
 
 //     private void HighlightAvailableCards()
@@ -51,39 +24,92 @@
 //         {
 //             if (card.currentState == CardInteractionHandler.CardState.OnBoard)
 //             {
-//                 card.Highlight(); // Highlight available cards for sacrifice
+//                 card.Highlight(); // Visual feedback for sacrifice availability
+//             }
+//         }
+//     }
+
+//     public void ProceedToPlacement()
+// {
+//     if (cardsToSacrifice.Count < requiredSacrifices)
+//     {
+//         Debug.LogWarning("Not enough sacrifices made. Cannot proceed to placement.");
+//         return;
+//     }
+
+//     Debug.Log($"Proceeding to placement. Sacrificing {cardsToSacrifice.Count} cards.");
+
+//     foreach (var card in cardsToSacrifice)
+//     {
+//         Destroy(card); // Remove sacrificed cards
+//     }
+
+//     cardsToSacrifice.Clear();
+
+//     if (cardToPlace != null)
+//     {
+//         HighlightEmptySlots(); // Allow placement of the card
+//     }
+
+//     if (sacrificeProgressText != null)
+//     {
+//         sacrificeProgressText.text = ""; // Clear sacrifice progress text
+//     }
+// }
+
+
+//     public void HighlightEmptySlots()
+//     {
+//         foreach (var slot in playerSlots)
+//         {
+//             if (!slot.GetComponent<CardSlot>().IsOccupied())
+//             {
+//                 slot.GetComponent<CardSlot>().HighlightSlot(); // Visual feedback for empty slots
 //             }
 //         }
 //     }
 
 //     public void SelectCardForSacrifice(GameObject card)
 //     {
+//         CardInteractionHandler interactionHandler = card.GetComponent<CardInteractionHandler>();
+
+//         // Ensure only on-board cards can be sacrificed
+//         if (interactionHandler == null || interactionHandler.currentState != CardInteractionHandler.CardState.OnBoard)
+//         {
+//             Debug.LogWarning("Only cards on the board can be selected for sacrifice.");
+//             return;
+//         }
+
 //         if (cardsToSacrifice.Contains(card))
 //         {
 //             cardsToSacrifice.Remove(card);
-//             card.GetComponent<CardInteractionHandler>().Deselect();
+//             interactionHandler.Deselect(); // Reset visual feedback
 //         }
 //         else if (cardsToSacrifice.Count < requiredSacrifices)
 //         {
 //             cardsToSacrifice.Add(card);
-//             card.GetComponent<CardInteractionHandler>().Highlight();
+//             interactionHandler.Highlight(); // Add visual feedback
 //         }
 
+//         // Update progress text
+//         if (sacrificeProgressText != null)
+//         {
+//             sacrificeProgressText.text = $"{cardsToSacrifice.Count}/{requiredSacrifices} sacrifices selected";
+//         }
+
+//         // Proceed to placement if sacrifices are complete
 //         if (cardsToSacrifice.Count == requiredSacrifices)
 //         {
 //             ProceedToPlacement();
 //         }
 //     }
 
-//     public void ProceedToPlacement()
-//     {
-//         foreach (var card in cardsToSacrifice)
-//         {
-//             Destroy(card);
-//         }
-//         cardsToSacrifice.Clear();
-//         HighlightEmptySlots();
-//     }
+
+// public bool AreSacrificesComplete()
+// {
+//     return cardsToSacrifice.Count >= requiredSacrifices;
+// }
+
 // }
 using UnityEngine;
 using System.Collections.Generic;
@@ -91,81 +117,114 @@ using TMPro;
 
 public class BoardManager : MonoBehaviour
 {
-    public List<GameObject> playerSlots = new List<GameObject>(); // Player slots
-    private List<GameObject> cardsToSacrifice = new List<GameObject>(); // Cards selected for sacrifice
-    private int requiredSacrifices;
-    private GameObject cardToPlace; // Card being placed after sacrifices
+    public List<GameObject> playerSlots = new();
     public TextMeshProUGUI sacrificeProgressText;
 
+    private List<GameObject> cardsToSacrifice = new();
+    private int requiredSacrifices;
+    private GameObject cardToPlace;
+
+    // Begin the sacrifice phase for a card with a specified cost
     public void EnableSacrificePhase(int cost, GameObject card)
     {
         requiredSacrifices = cost;
         cardToPlace = card;
-        Debug.Log($"Sacrifice phase started. Need {cost} sacrifices for card: {card.name}");
-        HighlightAvailableCards(); // Highlight cards on the board that can be sacrificed
+        HighlightAvailableCards();
+        UpdateSacrificeProgressText();
     }
 
+    // Highlight cards available for sacrifice
     private void HighlightAvailableCards()
     {
-        foreach (var card in FindObjectsOfType<CardInteractionHandler>())
+        foreach (var cardHandler in FindObjectsOfType<CardInteractionHandler>())
         {
-            if (card.currentState == CardInteractionHandler.CardState.OnBoard)
+            if (cardHandler.currentState == CardInteractionHandler.CardState.OnBoard)
             {
-                card.Highlight(); // Visual feedback for sacrifice availability
+                cardHandler.Highlight();
             }
         }
     }
 
-
+    // Attempt to proceed to card placement
     public void ProceedToPlacement()
     {
-        Debug.Log($"Proceeding to placement. Sacrificing {cardsToSacrifice.Count} cards.");
-        
+        if (cardsToSacrifice.Count < requiredSacrifices)
+        {
+            Debug.LogWarning("Not enough sacrifices made.");
+            return;
+        }
+
         foreach (var card in cardsToSacrifice)
         {
-            Destroy(card); // Remove sacrificed cards
+            Destroy(card);
         }
 
         cardsToSacrifice.Clear();
-
-        if (cardToPlace != null)
-        {
-            HighlightEmptySlots(); // Allow placement of the card
-        }
+        HighlightEmptySlots();
+        ClearSacrificeProgressText();
     }
 
+    // Highlight all empty slots for card placement
     public void HighlightEmptySlots()
     {
         foreach (var slot in playerSlots)
         {
-            if (!slot.GetComponent<CardSlot>().IsOccupied())
+            var cardSlot = slot.GetComponent<CardSlot>();
+            if (cardSlot != null && !cardSlot.IsOccupied())
             {
-                slot.GetComponent<CardSlot>().HighlightSlot(); // Visual feedback for empty slots
+                cardSlot.HighlightSlot();
             }
         }
     }
 
+    // Select a card for sacrifice
     public void SelectCardForSacrifice(GameObject card)
-{
-    if (cardsToSacrifice.Contains(card))
     {
-        cardsToSacrifice.Remove(card);
-        card.GetComponent<CardInteractionHandler>().Deselect();
-    }
-    else if (cardsToSacrifice.Count < requiredSacrifices)
-    {
-        cardsToSacrifice.Add(card);
-        card.GetComponent<CardInteractionHandler>().Highlight();
+        var interactionHandler = card.GetComponent<CardInteractionHandler>();
+        if (interactionHandler == null || interactionHandler.currentState != CardInteractionHandler.CardState.OnBoard)
+        {
+            Debug.LogWarning("Only on-board cards can be sacrificed.");
+            return;
+        }
+
+        if (cardsToSacrifice.Contains(card))
+        {
+            cardsToSacrifice.Remove(card);
+            interactionHandler.Deselect();
+        }
+        else if (cardsToSacrifice.Count < requiredSacrifices)
+        {
+            cardsToSacrifice.Add(card);
+            interactionHandler.Highlight();
+        }
+
+        UpdateSacrificeProgressText();
+
+        if (cardsToSacrifice.Count == requiredSacrifices)
+        {
+            ProceedToPlacement();
+        }
     }
 
-    if (sacrificeProgressText != null)
+    // Check if the required sacrifices are complete
+    public bool AreSacrificesComplete() => cardsToSacrifice.Count >= requiredSacrifices;
+
+    // Update the UI text for sacrifice progress
+    private void UpdateSacrificeProgressText()
     {
-        sacrificeProgressText.text = $"{cardsToSacrifice.Count}/{requiredSacrifices} sacrifices selected";
+        if (sacrificeProgressText != null)
+        {
+            sacrificeProgressText.text = $"{cardsToSacrifice.Count}/{requiredSacrifices} sacrifices selected";
+        }
     }
 
-    if (cardsToSacrifice.Count == requiredSacrifices)
+    // Clear the sacrifice progress text
+    private void ClearSacrificeProgressText()
     {
-        ProceedToPlacement();
+        if (sacrificeProgressText != null)
+        {
+            sacrificeProgressText.text = string.Empty;
+        }
     }
 }
-}
+

@@ -85,71 +85,64 @@ public class PlayerHand : MonoBehaviour
 
     //endregion
 
-    // public void SelectCard(GameObject card)
-    // {
-    //     if (selectedCard == card)
-    //     {
-    //         // Deselect the card if clicked again
-    //         DeselectCard();
-    //         return;
-    //     }
+    public void PlaceSelectedCard(GameObject slot)
+    {
+        if (selectedCard != null)
+        {
+            Card cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
 
-    //     // If another card is already selected, deselect it first
-    //     if (selectedCard != null)
-    //     {
-    //         DeselectCard();
-    //     }
+            if (cardData == null)
+            {
+                Debug.LogError("CardData is null for the selected card.");
+                return;
+            }
 
-    //     selectedCard = card; // Set the clicked card as selected
+            // Check if sacrifices are required and complete
+            if (cardData.cost > 0 && boardManager != null && !boardManager.AreSacrificesComplete())
+            {
+                Debug.LogWarning("Cannot place card. Sacrifices not complete.");
+                return;
+            }
 
-    //     // Scale up the selected card
-    //     CardInteractionHandler interactionHandler = selectedCard.GetComponent<CardInteractionHandler>();
-    //     if (interactionHandler != null)
-    //     {
-    //         interactionHandler.DisableHoverEffect(); // Disable hover effects for the selected card
-    //         interactionHandler.ScaleUpForSelection(); // Scale up the card using the selected multiplier
-    //     }
+            // Place the card
+            slot.GetComponent<CardSlot>().SetOccupied(true); // Mark the slot as occupied
+            selectedCard.transform.SetParent(slot.transform);
+            selectedCard.transform.localPosition = Vector3.zero;
 
-    //     Card cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
+            // Reset the card's scale to its original size
+            selectedCard.transform.localScale = Vector3.one;
 
-    //     if (cardData == null)
-    //     {
-    //         Debug.LogError("CardData is null for the selected card.");
-    //         return;
-    //     }
-
-    //     if (cardData.cost == 0)
-    //     {
-    //         Debug.Log("Selected card cost is 0, enabling direct placement.");
-    //         boardManager?.HighlightEmptySlots();
-    //     }
-    //     else
-    //     {
-    //         Debug.Log($"Selected card cost is {cardData.cost}, starting sacrifice phase.");
-    //         boardManager?.EnableSacrificePhase(cardData.cost);
-    //     }
-    // }
+            selectedCard.GetComponent<CardInteractionHandler>().SetCardState(CardInteractionHandler.CardState.OnBoard);
+            selectedCard = null; // Clear the selection
+        }
+    }
 
     public void SelectCard(GameObject card)
 {
+    // If the card is already selected, deselect it
     if (selectedCard == card)
     {
-        DeselectCard(); // Deselect if clicked again
+        Debug.Log("Card already selected. Deselecting it.");
+        DeselectCard();
         return;
     }
 
+    // If another card is selected, deselect it first
     if (selectedCard != null)
     {
-        DeselectCard(); // Deselect the previous card
+        Debug.Log("Switching selection. Deselecting current card.");
+        DeselectCard();
     }
 
-    selectedCard = card; // Set the clicked card as selected
+    // Set the new card as the selected card
+    selectedCard = card;
 
+    // Update visuals for the selected card
     CardInteractionHandler interactionHandler = selectedCard.GetComponent<CardInteractionHandler>();
     if (interactionHandler != null)
     {
-        interactionHandler.DisableHoverEffect();
-        interactionHandler.ScaleUpForSelection();
+        interactionHandler.DisableHoverEffect(); // Disable hover effects
+        interactionHandler.ScaleUpForSelection(); // Scale up for selection
     }
 
     Card cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
@@ -160,12 +153,13 @@ public class PlayerHand : MonoBehaviour
         return;
     }
 
+    // Check the card's cost and trigger the appropriate phase
     if (cardData.cost == 0)
     {
         Debug.Log("Selected card cost is 0, enabling direct placement.");
         boardManager?.HighlightEmptySlots();
     }
-    else
+    else if (cardData.cost > 0)
     {
         Debug.Log($"Selected card cost is {cardData.cost}, starting sacrifice phase.");
         boardManager?.EnableSacrificePhase(cardData.cost, selectedCard);
@@ -174,38 +168,23 @@ public class PlayerHand : MonoBehaviour
 
 
 
-    public void PlaceSelectedCard(GameObject slot)
+private void DeselectCard()
+{
+    if (selectedCard != null)
     {
-        if (selectedCard != null)
+        Debug.Log($"Deselecting card: {selectedCard.name}");
+
+        // Reset the card's visual state
+        CardInteractionHandler interactionHandler = selectedCard.GetComponent<CardInteractionHandler>();
+        if (interactionHandler != null)
         {
-            slot.GetComponent<CardSlot>().SetOccupied(true); // Mark the slot as occupied
-            selectedCard.transform.SetParent(slot.transform);
-            selectedCard.transform.localPosition = Vector3.zero;
-            
-            // Reset the card's scale to its original size
-            selectedCard.transform.localScale = Vector3.one; // Ensure it resets to normal size
-            
-            selectedCard.GetComponent<CardInteractionHandler>().SetCardState(CardInteractionHandler.CardState.OnBoard);
-            selectedCard = null; // Clear the selection
+            interactionHandler.EnableHoverEffect(); // Re-enable hover effects
+            interactionHandler.Deselect(); // Reset the visual state
         }
+
+        // Clear the selected card
+        selectedCard = null;
     }
+}
 
-    
-
-    private void DeselectCard()
-    {
-        if (selectedCard != null)
-        {
-            Debug.Log("Deselecting card.");
-            selectedCard.transform.localScale = originalScale; // Reset its scale
-
-            CardInteractionHandler interactionHandler = selectedCard.GetComponent<CardInteractionHandler>();
-            if (interactionHandler != null)
-            {
-                interactionHandler.EnableHoverEffect(); // Re-enable hover effects for the deselected card
-            }
-
-            selectedCard = null; // Clear the selection
-        }
-    }
 }

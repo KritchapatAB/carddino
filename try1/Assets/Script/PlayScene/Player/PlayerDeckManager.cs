@@ -4,12 +4,12 @@ using System;
 
 public class PlayerDeckManager : MonoBehaviour
 {
-    public List<Card> playerDeck = new List<Card>();
+    public List<Card> playerDeck = new();
     public CardDatabase cardDatabase;
     public RandomCard randomCard;
 
     public event Action OnDeckInitialized;
-    
+
     void Start()
     {
         if (cardDatabase == null || randomCard == null)
@@ -20,9 +20,10 @@ public class PlayerDeckManager : MonoBehaviour
         InitializePlayerDeck();
     }
 
+    // Initialize the player's deck
     public void InitializePlayerDeck()
     {
-        List<Card> availableCards = new List<Card>(cardDatabase.cards);
+        var availableCards = new List<Card>(cardDatabase.cards);
         playerDeck.Clear();
 
         if (availableCards.Count == 0)
@@ -31,30 +32,17 @@ public class PlayerDeckManager : MonoBehaviour
             return;
         }
 
-        // Populate the deck with cards (allow duplicates)
-        while (playerDeck.Count < 30)
+        while (playerDeck.Count < 30) // Fill the deck with 30 cards
         {
-            int randomIndex = UnityEngine.Random.Range(0, availableCards.Count); // Explicitly use UnityEngine.Random
+            int randomIndex = UnityEngine.Random.Range(0, availableCards.Count);
             playerDeck.Add(availableCards[randomIndex]);
         }
 
         Debug.Log("Player deck initialized.");
-
-        // Notify listeners that the deck is ready
         OnDeckInitialized?.Invoke();
     }
 
-    Card DrawRandomCardFromList(List<Card> cards)
-    {
-        if (cards.Count > 0)
-        {
-            int randomIndex = UnityEngine.Random.Range(0, cards.Count); // Explicitly use UnityEngine.Random
-            return cards[randomIndex];
-        }
-        Debug.LogWarning("No cards left in the list!");
-        return null;
-    }
-
+    // Draw a random card from the deck by type and cost
     public Card DrawRandomCardByTypeAndCost(string dinoType, int maxCost)
     {
         if (randomCard == null)

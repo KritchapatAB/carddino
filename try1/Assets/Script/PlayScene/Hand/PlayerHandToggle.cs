@@ -1,13 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerHandToggle : MonoBehaviour
 {
-    public GameObject playerHand; // Assign your PlayerHand GameObject here in the Inspector
+    public GameObject playerHand;
 
+    // Toggle the visibility of the player's hand
     public void TogglePlayerHand()
     {
-        playerHand.SetActive(!playerHand.activeSelf); // Toggle the active state of PlayerHand
+        if (playerHand != null)
+        {
+            playerHand.SetActive(!playerHand.activeSelf);
+        }
     }
 }

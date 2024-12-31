@@ -3,35 +3,40 @@ using UnityEngine.EventSystems;
 
 public class CardSlot : MonoBehaviour, IPointerClickHandler
 {
-    private bool isOccupied = false;
+    private bool isOccupied;
 
+    // Handle click event on the card slot
     public void OnPointerClick(PointerEventData eventData)
     {
-        PlayerHand playerHand = FindObjectOfType<PlayerHand>();
-        if (playerHand != null && !isOccupied) // Ensure the slot is not occupied
+        if (isOccupied) return;
+
+        var playerHand = FindObjectOfType<PlayerHand>();
+        if (playerHand != null)
         {
             playerHand.PlaceSelectedCard(gameObject);
-            ResetSlot(); // Reset visual feedback after placement
+            ResetSlotVisual();
         }
     }
 
-    public void HighlightSlot()
-    {
-        GetComponent<SpriteRenderer>().color = Color.green; // Add highlight
-    }
+    // Highlight the slot with a green color
+    public void HighlightSlot() => SetSlotColor(Color.green);
 
-    public void ResetSlot()
-    {
-        GetComponent<SpriteRenderer>().color = Color.white; // Reset highlight
-    }
+    // Reset the slot's visual to its default state
+    public void ResetSlotVisual() => SetSlotColor(Color.white);
 
-    public bool IsOccupied()
-    {
-        return isOccupied;
-    }
+    // Check if the slot is currently occupied
+    public bool IsOccupied() => isOccupied;
 
-    public void SetOccupied(bool occupied)
+    // Set the occupation status of the slot
+    public void SetOccupied(bool occupied) => isOccupied = occupied;
+
+    // Update the slot's color
+    private void SetSlotColor(Color color)
     {
-        isOccupied = occupied;
+        var spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = color;
+        }
     }
 }

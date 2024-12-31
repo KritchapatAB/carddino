@@ -45,28 +45,30 @@ public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPoin
         }
     }
 
-    // public void OnPointerClick(PointerEventData eventData)
-    // {
-    //     if (currentState == CardState.InHand)
-    //     {
-    //         FindObjectOfType<PlayerHand>().SelectCard(gameObject);
-    //     }
-    //     else if (currentState == CardState.OnBoard)
-    //     {
-    //         FindObjectOfType<BoardManager>().SelectCardForSacrifice(gameObject);
-    //     }
-    // }
-    public void OnPointerClick(PointerEventData eventData)
+public void OnPointerClick(PointerEventData eventData)
 {
     if (currentState == CardState.InHand)
     {
-        FindObjectOfType<PlayerHand>().SelectCard(gameObject);
+        PlayerHand playerHand = FindObjectOfType<PlayerHand>();
+        if (playerHand != null)
+        {
+            playerHand.SelectCard(gameObject); // Pass this card to PlayerHand for selection
+        }
     }
     else if (currentState == CardState.OnBoard)
     {
-        FindObjectOfType<BoardManager>().SelectCardForSacrifice(gameObject);
+        BoardManager boardManager = FindObjectOfType<BoardManager>();
+        if (boardManager != null)
+        {
+            boardManager.SelectCardForSacrifice(gameObject); // Handle board interactions
+        }
+    }
+    else
+    {
+        Debug.LogWarning("This card cannot be interacted with in its current state.");
     }
 }
+
 
 
     private void HoverEffect()
