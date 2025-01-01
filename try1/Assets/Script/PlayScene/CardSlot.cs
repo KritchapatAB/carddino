@@ -24,11 +24,20 @@ public class CardSlot : MonoBehaviour, IPointerClickHandler
     // Reset the slot's visual to its default state
     public void ResetSlotVisual() => SetSlotColor(Color.white);
 
-    // Check if the slot is currently occupied
     public bool IsOccupied() => isOccupied;
 
-    // Set the occupation status of the slot
-    public void SetOccupied(bool occupied) => isOccupied = occupied;
+    public void SetOccupied(bool occupied)
+    {
+        isOccupied = occupied;
+
+        // Optionally, update visual feedback based on the slot's occupation status
+        var spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = occupied ? Color.gray : Color.white;
+        }
+}
+
 
     // Update the slot's color
     private void SetSlotColor(Color color)

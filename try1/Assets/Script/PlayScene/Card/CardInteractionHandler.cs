@@ -3,16 +3,16 @@ using UnityEngine.EventSystems;
 
 public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
-    public Card cardData; // The card's data
+    public Card cardData;
     public enum CardState { InHand, OnBoard, Placing }
     public CardState currentState;
 
     private Vector3 originalScale;
-    private bool hoverEnabled = true; // Determines whether hover effects are enabled
+    private bool hoverEnabled = true;
 
     [Header("Scale Settings")]
-    public float hoverScaleMultiplier = 1.2f; // Scale multiplier for hover
-    public float selectedScaleMultiplier = 1.2f; // Scale multiplier for selection
+    public float hoverScaleMultiplier = 1.2f;
+    public float selectedScaleMultiplier = 1.2f;
 
     private void Start()
     {
@@ -31,10 +31,6 @@ public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPoin
         {
             HoverEffect();
         }
-        else if (hoverEnabled && currentState == CardState.OnBoard)
-        {
-            BoardHoverEffect();
-        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -45,40 +41,32 @@ public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPoin
         }
     }
 
-public void OnPointerClick(PointerEventData eventData)
-{
-    if (currentState == CardState.InHand)
+    public void OnPointerClick(PointerEventData eventData)
     {
-        PlayerHand playerHand = FindObjectOfType<PlayerHand>();
-        if (playerHand != null)
+        var boardManager = FindObjectOfType<BoardManager>();
+        var playerHand = FindObjectOfType<PlayerHand>();
+
+        if (boardManager != null && boardManager.IsSacrificePhaseActive())
         {
-            playerHand.SelectCard(gameObject); // Pass this card to PlayerHand for selection
+            if (currentState == CardState.OnBoard)
+            {
+                boardManager.SelectCardForSacrifice(gameObject);
+            }
+            else
+            {
+                boardManager.DisableSacrificePhase();
+                playerHand.SelectCard(gameObject);
+            }
+        }
+        else if (currentState == CardState.InHand)
+        {
+            playerHand?.SelectCard(gameObject);
         }
     }
-    else if (currentState == CardState.OnBoard)
-    {
-        BoardManager boardManager = FindObjectOfType<BoardManager>();
-        if (boardManager != null)
-        {
-            boardManager.SelectCardForSacrifice(gameObject); // Handle board interactions
-        }
-    }
-    else
-    {
-        Debug.LogWarning("This card cannot be interacted with in its current state.");
-    }
-}
-
-
 
     private void HoverEffect()
     {
         transform.localScale = originalScale * hoverScaleMultiplier;
-    }
-
-    private void BoardHoverEffect()
-    {
-        transform.localScale = originalScale * 1.1f; // Slightly smaller than selection or hover
     }
 
     private void ResetScale()
@@ -96,23 +84,35 @@ public void OnPointerClick(PointerEventData eventData)
         hoverEnabled = true;
     }
 
-    public void Highlight()
+    public void HighlightSacrifireAble()
     {
-        // Change size or color for sacrifice highlight
-        GetComponent<SpriteRenderer>().color = Color.red; // Change color to red
-        transform.localScale = Vector3.one * 0.8f; // Scale down slightly
+        GetComponent<SpriteRenderer>().color = Color.yellow; // Indicate it's sacrificial
+        transform.localScale = originalScale * 0.9f;
     }
 
-    public void Deselect()
+    public void HighlightSelectedForSacrifice()
     {
-        // Reset size or color
-        GetComponent<SpriteRenderer>().color = Color.white; // Reset color
-        transform.localScale = originalScale; // Reset scale
-}
+        GetComponent<SpriteRenderer>().color = Color.red; // Strong highlight for selected
+        transform.localScale = originalScale * 0.8f;
+    }
 
+    public void DeselectSacrifireAble()
+    {
+        GetComponent<SpriteRenderer>().color = Color.white;
+        transform.localScale = originalScale * 0.9f; // Back to sacrificial highlight
+    }
+
+    public void ResetToDefault()
+    {
+        GetComponent<SpriteRenderer>().color = Color.white;
+        ResetScale(); // Return to normal
+    }
 
     public void ScaleUpForSelection()
     {
         transform.localScale = originalScale * selectedScaleMultiplier;
+        DisableHoverEffect();
     }
 }
+
+

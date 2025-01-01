@@ -3,87 +3,107 @@ using UnityEngine;
 
 public class PlayerHand : MonoBehaviour
 {
-    public List<Card> playerHand = new List<Card>(); // Logical state of the player's hand
-    public GameObject cardPrefab;                   // Prefab for card UI
-    public Transform handPanel;                     // Parent container for card UI in the hand
-    public PlayerDeckManager playerDeckManager;     // Reference to the PlayerDeckManager
+    public List<Card> playerHand = new();
+    public GameObject cardPrefab;
+    public Transform handPanel;
+    public PlayerDeckManager playerDeckManager;
+    public BoardManager boardManager;
 
-    private List<GameObject> instantiatedCards = new List<GameObject>(); // Instantiated card objects
-
-    private GameObject selectedCard; // The currently selected card
-    private Vector3 originalScale; // Original scale of the selected card
-    public BoardManager boardManager; // Reference to the BoardManager script
+    private List<GameObject> instantiatedCards = new();
+    private GameObject selectedCard;
 
     void Start()
     {
-        if (playerDeckManager != null)
-        {
-            // Subscribe to the OnDeckInitialized event
-            playerDeckManager.OnDeckInitialized += DrawInitialHand;
-        }
-        else
+        if (playerDeckManager == null)
         {
             Debug.LogError("PlayerDeckManager is not assigned in PlayerHand.");
+            return;
         }
+
+        playerDeckManager.OnDeckInitialized += DrawInitialHand;
     }
 
     void OnDestroy()
     {
-        // Unsubscribe to avoid memory leaks
         if (playerDeckManager != null)
         {
             playerDeckManager.OnDeckInitialized -= DrawInitialHand;
         }
     }
 
-    //region starthand
     public void DrawInitialHand()
     {
-        // Draw initial cards
-        DrawCardsByType("Normal", 3);    // Draw 3 Normal cards
-        DrawCardsByType("Attacker", 1, 4); // Draw 1 Attacker card with max cost of 4
-        DrawCardsByType("Defender", 1, 4); // Draw 1 Defender card with max cost of 4
+        DrawCardsByType("Normal", 3);
+        DrawCardsByType("Attacker", 1, 4);
+        DrawCardsByType("Defender", 1, 4);
     }
 
-    private void DrawCardsByType(string dinoType, int count, int maxCost = int.MaxValue)
+    private void DrawCardsByType(string cardType, int count, int maxCost = int.MaxValue)
     {
         for (int i = 0; i < count; i++)
         {
-            var card = playerDeckManager.DrawRandomCardByTypeAndCost(dinoType, maxCost);
-
+            var card = playerDeckManager.DrawRandomCardByTypeAndCost(cardType, maxCost);
             if (card != null)
             {
-                playerHand.Add(card);  // Add to the player's hand list
-                DrawCard(card);        // Instantiate and display the card
+                playerHand.Add(card);
+                DrawCard(card);
             }
             else
             {
-                Debug.LogWarning($"Failed to draw a card of type {dinoType} with cost <= {maxCost}.");
+                Debug.LogWarning($"Failed to draw a card of type {cardType} with cost <= {maxCost}.");
             }
         }
     }
 
-    public void DrawCard(Card card)
+    private void DrawCard(Card card)
     {
-        GameObject newCard = Instantiate(cardPrefab, handPanel); // Create the card in the hand
-        CardViz cardViz = newCard.GetComponent<CardViz>();
+        var newCard = Instantiate(cardPrefab, handPanel);
+        var cardViz = newCard.GetComponent<CardViz>();
+        cardViz?.LoadCard(card);
 
-        if (cardViz != null)
-        {
-            cardViz.LoadCard(card); // Populate the visual details from Card data
-        }
-
-        CardInteractionHandler interactionHandler = newCard.GetComponent<CardInteractionHandler>();
+        var interactionHandler = newCard.GetComponent<CardInteractionHandler>();
         if (interactionHandler != null)
         {
-            interactionHandler.cardData = card; // Assign the CardData to the interaction handler
+            interactionHandler.cardData = card;
             interactionHandler.SetCardState(CardInteractionHandler.CardState.InHand);
         }
 
-        instantiatedCards.Add(newCard); // Add the card to the list of instantiated cards
+        instantiatedCards.Add(newCard);
     }
 
-    //endregion
+    public void SelectCard(GameObject card)
+    {
+        if (selectedCard == card)
+        {
+            DeselectCard();
+            return;
+        }
+
+        if (selectedCard != null)
+        {
+            DeselectCard();
+        }
+
+        selectedCard = card;
+        var interactionHandler = card.GetComponent<CardInteractionHandler>();
+        interactionHandler?.ScaleUpForSelection();
+
+        var cardData = card.GetComponent<CardInteractionHandler>()?.cardData;
+        if (cardData == null)
+        {
+            Debug.LogError("CardData is null for the selected card.");
+            return;
+        }
+
+        if (cardData.cost == 0)
+        {
+            boardManager.HighlightEmptySlots();
+        }
+        else
+        {
+            boardManager.EnableSacrificePhase(cardData.cost, card);
+        }
+    }
 
     public void PlaceSelectedCard(GameObject slot)
     {
@@ -97,94 +117,39 @@ public class PlayerHand : MonoBehaviour
                 return;
             }
 
-            // Check if sacrifices are required and complete
             if (cardData.cost > 0 && boardManager != null && !boardManager.AreSacrificesComplete())
             {
                 Debug.LogWarning("Cannot place card. Sacrifices not complete.");
                 return;
             }
 
-            // Place the card
-            slot.GetComponent<CardSlot>().SetOccupied(true); // Mark the slot as occupied
+            slot.GetComponent<CardSlot>().SetOccupied(true); // Mark slot as occupied
             selectedCard.transform.SetParent(slot.transform);
             selectedCard.transform.localPosition = Vector3.zero;
-
-            // Reset the card's scale to its original size
             selectedCard.transform.localScale = Vector3.one;
 
             selectedCard.GetComponent<CardInteractionHandler>().SetCardState(CardInteractionHandler.CardState.OnBoard);
-            selectedCard = null; // Clear the selection
+            selectedCard = null; // Clear selection
+
+            boardManager.DestroySacrificedCards(); // Remove sacrificed cards
+            boardManager.DisableSacrificePhase(); // End the sacrifice phase
+        }
+        else
+        {
+            Debug.LogWarning("No card is selected for placement.");
         }
     }
 
-    public void SelectCard(GameObject card)
-{
-    // If the card is already selected, deselect it
-    if (selectedCard == card)
+
+    private void DeselectCard()
     {
-        Debug.Log("Card already selected. Deselecting it.");
-        DeselectCard();
-        return;
-    }
-
-    // If another card is selected, deselect it first
-    if (selectedCard != null)
-    {
-        Debug.Log("Switching selection. Deselecting current card.");
-        DeselectCard();
-    }
-
-    // Set the new card as the selected card
-    selectedCard = card;
-
-    // Update visuals for the selected card
-    CardInteractionHandler interactionHandler = selectedCard.GetComponent<CardInteractionHandler>();
-    if (interactionHandler != null)
-    {
-        interactionHandler.DisableHoverEffect(); // Disable hover effects
-        interactionHandler.ScaleUpForSelection(); // Scale up for selection
-    }
-
-    Card cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
-
-    if (cardData == null)
-    {
-        Debug.LogError("CardData is null for the selected card.");
-        return;
-    }
-
-    // Check the card's cost and trigger the appropriate phase
-    if (cardData.cost == 0)
-    {
-        Debug.Log("Selected card cost is 0, enabling direct placement.");
-        boardManager?.HighlightEmptySlots();
-    }
-    else if (cardData.cost > 0)
-    {
-        Debug.Log($"Selected card cost is {cardData.cost}, starting sacrifice phase.");
-        boardManager?.EnableSacrificePhase(cardData.cost, selectedCard);
-    }
-}
-
-
-
-private void DeselectCard()
-{
-    if (selectedCard != null)
-    {
-        Debug.Log($"Deselecting card: {selectedCard.name}");
-
-        // Reset the card's visual state
-        CardInteractionHandler interactionHandler = selectedCard.GetComponent<CardInteractionHandler>();
+        var interactionHandler = selectedCard?.GetComponent<CardInteractionHandler>();
         if (interactionHandler != null)
         {
+            interactionHandler.ResetToDefault();
             interactionHandler.EnableHoverEffect(); // Re-enable hover effects
-            interactionHandler.Deselect(); // Reset the visual state
         }
-
-        // Clear the selected card
         selectedCard = null;
     }
 }
 
-}
