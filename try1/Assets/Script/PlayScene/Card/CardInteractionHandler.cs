@@ -114,5 +114,3 @@ public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPoin
         DisableHoverEffect();
     }
 }
-
-

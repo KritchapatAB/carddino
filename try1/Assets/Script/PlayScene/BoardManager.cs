@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
+using System;
 
 public class BoardManager : MonoBehaviour
 {
@@ -11,6 +12,112 @@ public class BoardManager : MonoBehaviour
     private int requiredSacrifices;
     private GameObject cardToPlace;
     private bool isSacrificePhaseActive = false;
+
+    public List<Card> engagePlayerDeck = new(); // Deck for the current fight
+    public PlayerDeckManager playerDeckManager;
+
+    public event Action OnEngageDeckReady;
+
+    void Start()
+        {
+            if (playerDeckManager == null)
+            {
+                Debug.LogError("PlayerDeckManager is not assigned!");
+                return;
+            }
+
+            // Subscribe to OnPlayerDeckReady
+            playerDeckManager.OnPlayerDeckReady += PrepareEngageDeck;
+        }
+
+    void OnDestroy()
+    {
+        if (playerDeckManager != null)
+        {
+            playerDeckManager.OnPlayerDeckReady -= PrepareEngageDeck;
+        }
+    }
+
+    private void Awake()
+    {
+        // Find all slots in the scene and populate playerSlots
+        playerSlots.Clear();
+        foreach (Transform child in transform)
+        {
+            var slot = child.GetComponent<CardSlot>();
+            if (slot != null)
+            {
+                playerSlots.Add(child.gameObject);
+            }
+        }
+        Debug.Log($"Player slots populated: {playerSlots.Count}");
+    }
+
+    public void PrepareEngageDeck()
+    {
+        if (playerDeckManager == null || playerDeckManager.playerDeck.Count == 0)
+        {
+            Debug.LogError("Cannot prepare engage deck. Player deck is not initialized.");
+            return;
+        }
+
+        engagePlayerDeck.Clear();
+        engagePlayerDeck.AddRange(playerDeckManager.playerDeck);
+
+        Debug.Log($"Engage deck prepared with {engagePlayerDeck.Count} cards.");
+        OnEngageDeckReady?.Invoke(); // Notify listeners
+    }
+
+    public Card DrawCardFromEngageDeck()
+    {
+        if (engagePlayerDeck == null || engagePlayerDeck.Count == 0)
+        {
+            Debug.LogWarning("No cards left in the Engage Deck to draw!");
+            return null;
+        }
+
+        // Draw a random card
+        int randomIndex = UnityEngine.Random.Range(0, engagePlayerDeck.Count);
+        Card drawnCard = engagePlayerDeck[randomIndex];
+
+        // Remove the card from the Engage Deck
+        engagePlayerDeck.RemoveAt(randomIndex);
+
+        Debug.Log($"Card drawn randomly: {drawnCard.cardName}");
+        return drawnCard;
+    }
+
+    public Card DrawCardFromEngageDeck(string cardType, int maxCost)
+    {
+        if (engagePlayerDeck == null || engagePlayerDeck.Count == 0)
+        {
+            Debug.LogWarning("No cards left in the Engage Deck to draw!");
+            return null;
+        }
+
+        // Filter cards by type and cost
+        var filteredCards = engagePlayerDeck.FindAll(card => card.dinoType == cardType && card.cost <= maxCost);
+
+        if (filteredCards.Count == 0)
+        {
+            Debug.LogWarning($"No cards of type {cardType} with cost <= {maxCost} found.");
+            return null;
+        }
+
+        // Draw a random card from the filtered list
+        int randomIndex = UnityEngine.Random.Range(0, filteredCards.Count);
+        Card drawnCard = filteredCards[randomIndex];
+
+        // Remove the card from the Engage Deck
+        engagePlayerDeck.Remove(drawnCard);
+
+        Debug.Log($"Card drawn: {drawnCard.cardName}");
+        return drawnCard;
+    }
+
+//region Sacrifire
+    public bool IsSacrificePhaseActive() => isSacrificePhaseActive;
+    public bool AreSacrificesComplete() => cardsToSacrifice.Count >= requiredSacrifices;
 
     public void EnableSacrificePhase(int cost, GameObject card)
     {
@@ -24,11 +131,11 @@ public class BoardManager : MonoBehaviour
 
 
     public void DisableSacrificePhase()
-{
-    Debug.Log("Disabling sacrifice phase.");
-    ResetOnBoardCardsScale(); // Reset all on-board cards
-    ClearSacrificeData();
-}
+    {
+        Debug.Log("Disabling sacrifice phase.");
+        ResetOnBoardCardsScale(); // Reset all on-board cards
+        ClearSacrificeData();
+    }
 
     public void ProceedToPlacement()
     {
@@ -42,24 +149,22 @@ public class BoardManager : MonoBehaviour
         ClearSacrificeProgressText();
     }
 
-
-
-public void DestroySacrificedCards()
-{
-    foreach (var card in cardsToSacrifice)
+    public void DestroySacrificedCards()
     {
-        var cardSlot = card.transform.parent?.GetComponent<CardSlot>();
-        if (cardSlot != null)
+        foreach (var card in cardsToSacrifice)
         {
-            cardSlot.SetOccupied(false); // Mark the slot as unoccupied
+            var cardSlot = card.transform.parent?.GetComponent<CardSlot>();
+            if (cardSlot != null)
+            {
+                cardSlot.SetOccupied(false); // Mark the slot as unoccupied
+            }
+
+            Destroy(card); // Remove the card from the scene
+            Debug.Log($"Destroyed sacrificed card: {card.name}");
         }
 
-        Destroy(card); // Remove the card from the scene
-        Debug.Log($"Destroyed sacrificed card: {card.name}");
+        cardsToSacrifice.Clear(); // Clear the sacrifice list
     }
-
-    cardsToSacrifice.Clear(); // Clear the sacrifice list
-}
 
 
     public void SelectCardForSacrifice(GameObject card)
@@ -95,34 +200,35 @@ public void DestroySacrificedCards()
             ProceedToPlacement();
         }
     }
-
-
-    public bool AreSacrificesComplete() => cardsToSacrifice.Count >= requiredSacrifices;
-
-
+    
+    private void ClearSacrificeData()
+    {
+        cardsToSacrifice.Clear();
+        ClearSacrificeProgressText();
+        isSacrificePhaseActive = false;
+        cardToPlace = null;
+    }
 
     private void ResetOnBoardCardsScale()
-{
-    foreach (var handler in FindObjectsOfType<CardInteractionHandler>())
     {
-        handler.ResetToDefault();
-    }
-}
-
-
-    private void HighlightAvailableCards()
-{
-    foreach (var handler in FindObjectsOfType<CardInteractionHandler>())
-    {
-        if (handler.currentState == CardInteractionHandler.CardState.OnBoard)
+        foreach (var handler in FindObjectsOfType<CardInteractionHandler>())
         {
-            handler.HighlightSacrifireAble();
+            handler.ResetToDefault();
         }
     }
-}
+//endregion
 
-
-    
+//region Highlight
+    private void HighlightAvailableCards()
+    {
+        foreach (var handler in FindObjectsOfType<CardInteractionHandler>())
+        {
+            if (handler.currentState == CardInteractionHandler.CardState.OnBoard)
+            {
+                handler.HighlightSacrifireAble();
+            }
+        }
+    }
 
     public void HighlightEmptySlots()
     {
@@ -135,15 +241,9 @@ public void DestroySacrificedCards()
             }
         }
     }
+//endregion
 
-    private void ClearSacrificeData()
-    {
-        cardsToSacrifice.Clear();
-        ClearSacrificeProgressText();
-        isSacrificePhaseActive = false;
-        cardToPlace = null;
-    }
-
+//region SacrifireText
     private void UpdateSacrificeProgressText()
     {
         if (sacrificeProgressText != null)
@@ -159,6 +259,12 @@ public void DestroySacrificedCards()
             sacrificeProgressText.text = string.Empty;
         }
     }
+//endregion
 
-    public bool IsSacrificePhaseActive() => isSacrificePhaseActive;
+public void ClearEngageDeck()
+    {
+        engagePlayerDeck.Clear();
+        Debug.Log("Engage deck cleared after the fight.");
+    }
+    
 }

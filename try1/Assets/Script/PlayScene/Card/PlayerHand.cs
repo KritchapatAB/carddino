@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PlayerHand : MonoBehaviour
 {
-    public List<Card> playerHand = new();
+    public List<Card> playerHand = new(); // Cards currently in hand
     public GameObject cardPrefab;
     public Transform handPanel;
     public PlayerDeckManager playerDeckManager;
@@ -12,23 +12,47 @@ public class PlayerHand : MonoBehaviour
     private List<GameObject> instantiatedCards = new();
     private GameObject selectedCard;
 
-    void Start()
+    public int maxHandSize = 20; 
+
+    private void Start()
     {
-        if (playerDeckManager == null)
+        if (boardManager == null)
         {
-            Debug.LogError("PlayerDeckManager is not assigned in PlayerHand.");
+            Debug.LogError("BoardManager is not assigned in PlayerHand.");
             return;
         }
 
-        playerDeckManager.OnDeckInitialized += DrawInitialHand;
+        boardManager.OnEngageDeckReady += DrawInitialHand;
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
-        if (playerDeckManager != null)
+        if (boardManager != null)
         {
-            playerDeckManager.OnDeckInitialized -= DrawInitialHand;
+            boardManager.OnEngageDeckReady -= DrawInitialHand;
         }
+    }
+
+    public void DrawCard(Card card)
+    {
+        GameObject newCard = Instantiate(cardPrefab, handPanel);
+        CardViz cardViz = newCard.GetComponent<CardViz>();
+
+        if (cardViz != null)
+        {
+            cardViz.LoadCard(card); // Load the card's visual representation
+        }
+
+        CardInteractionHandler interactionHandler = newCard.GetComponent<CardInteractionHandler>();
+        if (interactionHandler != null)
+        {
+            interactionHandler.cardData = card; // Assign the card data to the interaction handler
+            interactionHandler.SetCardState(CardInteractionHandler.CardState.InHand);
+        }
+
+        instantiatedCards.Add(newCard); // Add the card object to the visual hand
+        playerHand.Add(card);          // Add the card to the logical hand
+        Debug.Log($"Card drawn: {card.cardName}");
     }
 
     public void DrawInitialHand()
@@ -42,35 +66,64 @@ public class PlayerHand : MonoBehaviour
     {
         for (int i = 0; i < count; i++)
         {
-            var card = playerDeckManager.DrawRandomCardByTypeAndCost(cardType, maxCost);
+            var card = boardManager.DrawCardFromEngageDeck(cardType, maxCost); // Fetch a card from the engage deck
             if (card != null)
             {
-                playerHand.Add(card);
-                DrawCard(card);
+                DrawCard(card); // Call the updated DrawCard method with the card data
             }
             else
             {
-                Debug.LogWarning($"Failed to draw a card of type {cardType} with cost <= {maxCost}.");
+                Debug.LogWarning($"No {cardType} card available with cost <= {maxCost}.");
             }
         }
     }
 
-    private void DrawCard(Card card)
+    public void DrawCardFromDeck()
     {
-        var newCard = Instantiate(cardPrefab, handPanel);
-        var cardViz = newCard.GetComponent<CardViz>();
-        cardViz?.LoadCard(card);
+        // Ensure the actual hand size is tracked from instantiated cards
+        int currentHandSize = instantiatedCards.Count;
 
-        var interactionHandler = newCard.GetComponent<CardInteractionHandler>();
+        if (currentHandSize >= maxHandSize)
+        {
+            Debug.LogWarning("Cannot draw more cards. Hand is full!");
+            return;
+        }
+
+        // Use the new random draw method
+        Card card = boardManager.DrawCardFromEngageDeck();
+
+        if (card == null)
+        {
+            Debug.LogWarning("No cards left in the Engage Deck to draw!");
+            return;
+        }
+
+        // Instantiate the new card and add it to the hand
+        GameObject newCard = Instantiate(cardPrefab, handPanel);
+        CardViz cardViz = newCard.GetComponent<CardViz>();
+
+        if (cardViz != null)
+        {
+            cardViz.LoadCard(card); // Load card visuals
+        }
+
+        CardInteractionHandler interactionHandler = newCard.GetComponent<CardInteractionHandler>();
         if (interactionHandler != null)
         {
-            interactionHandler.cardData = card;
+            interactionHandler.cardData = card; // Assign card data
             interactionHandler.SetCardState(CardInteractionHandler.CardState.InHand);
         }
 
+        // Add the new card to the instantiatedCards list
         instantiatedCards.Add(newCard);
+
+        // Add to the logical `playerHand` list
+        playerHand.Add(card);
+
+        Debug.Log($"Card drawn: {card.cardName}");
     }
 
+//region PlacingCard
     public void SelectCard(GameObject card)
     {
         if (selectedCard == card)
@@ -123,23 +176,31 @@ public class PlayerHand : MonoBehaviour
                 return;
             }
 
-            slot.GetComponent<CardSlot>().SetOccupied(true); // Mark slot as occupied
+            // Place the card visually
+            slot.GetComponent<CardSlot>().SetOccupied(true);
             selectedCard.transform.SetParent(slot.transform);
             selectedCard.transform.localPosition = Vector3.zero;
             selectedCard.transform.localScale = Vector3.one;
 
             selectedCard.GetComponent<CardInteractionHandler>().SetCardState(CardInteractionHandler.CardState.OnBoard);
-            selectedCard = null; // Clear selection
 
-            boardManager.DestroySacrificedCards(); // Remove sacrificed cards
-            boardManager.DisableSacrificePhase(); // End the sacrifice phase
+            // Remove the card from the hand tracking
+            instantiatedCards.Remove(selectedCard);
+            playerHand.Remove(cardData);
+
+            selectedCard = null;
+
+            // Handle board manager state
+            boardManager.DestroySacrificedCards();
+            boardManager.DisableSacrificePhase();
+
+            Debug.Log("Card placed successfully.");
         }
         else
         {
             Debug.LogWarning("No card is selected for placement.");
         }
     }
-
 
     private void DeselectCard()
     {
@@ -151,5 +212,5 @@ public class PlayerHand : MonoBehaviour
         }
         selectedCard = null;
     }
+//endregion
 }
-

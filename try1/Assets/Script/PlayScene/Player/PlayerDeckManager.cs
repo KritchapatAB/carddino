@@ -4,25 +4,30 @@ using System;
 
 public class PlayerDeckManager : MonoBehaviour
 {
-    public List<Card> playerDeck = new();
+    public List<Card> playerDeck = new(); // Player's full deck
     public CardDatabase cardDatabase;
-    public RandomCard randomCard;
 
-    public event Action OnDeckInitialized;
+    public event Action OnPlayerDeckReady; // Fires when playerDeck is ready
+
+    private bool isPlayerDeckInitialized = false;
 
     void Start()
     {
-        if (cardDatabase == null || randomCard == null)
+        if (cardDatabase == null)
         {
-            Debug.LogError("CardDatabase or RandomCard is not assigned!");
+            Debug.LogError("CardDatabase is not assigned!");
             return;
         }
+
+        // For development only
         InitializePlayerDeck();
     }
 
     // Initialize the player's deck
     public void InitializePlayerDeck()
     {
+        if (isPlayerDeckInitialized) return;
+
         var availableCards = new List<Card>(cardDatabase.cards);
         playerDeck.Clear();
 
@@ -32,26 +37,14 @@ public class PlayerDeckManager : MonoBehaviour
             return;
         }
 
-        while (playerDeck.Count < 30) // Fill the deck with 30 cards
+        while (playerDeck.Count < 30)
         {
             int randomIndex = UnityEngine.Random.Range(0, availableCards.Count);
             playerDeck.Add(availableCards[randomIndex]);
         }
 
-        Debug.Log("Player deck initialized.");
-        OnDeckInitialized?.Invoke();
-    }
-
-    // Draw a random card from the deck by type and cost
-    public Card DrawRandomCardByTypeAndCost(string dinoType, int maxCost)
-    {
-        if (randomCard == null)
-        {
-            Debug.LogError("RandomCard component is not assigned!");
-            return null;
-        }
-
-        var filteredCards = playerDeck.FindAll(card => card.dinoType == dinoType && card.cost <= maxCost);
-        return randomCard.DrawAndRemoveRandomCard(filteredCards);
+        Debug.Log($"Player deck initialized with {playerDeck.Count} cards.");
+        isPlayerDeckInitialized = true;
+        OnPlayerDeckReady?.Invoke();
     }
 }
