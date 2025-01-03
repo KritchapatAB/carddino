@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aff16f758dcaa234a8467935521aaea7, type: 3}
   m_Name: CardID19
   m_EditorClassIdentifier: 
-  id: 0
+  id: 19
   cardName: Trex
   cardClass: {fileID: 21300000, guid: 460f31cba1b4f7145abf29a8436f49fd, type: 3}
   cost: 4
