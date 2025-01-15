@@ -16,26 +16,13 @@ public class BoardManager : MonoBehaviour
     public List<Card> engagePlayerDeck = new(); // Deck for the current fight
     public PlayerDeckManager playerDeckManager;
 
-    public event Action OnEngageDeckReady;
+    public List<GameObject> enemySlots = new(); // Add enemy card slots
+    public EnemyDeckManager enemyDeckManager;
 
+//region StartGame
     void Start()
-        {
-            if (playerDeckManager == null)
-            {
-                Debug.LogError("PlayerDeckManager is not assigned!");
-                return;
-            }
-
-            // Subscribe to OnPlayerDeckReady
-            playerDeckManager.OnPlayerDeckReady += PrepareEngageDeck;
-        }
-
-    void OnDestroy()
     {
-        if (playerDeckManager != null)
-        {
-            playerDeckManager.OnPlayerDeckReady -= PrepareEngageDeck;
-        }
+        PrepareEngageDeck();
     }
 
     private void Awake()
@@ -65,9 +52,11 @@ public class BoardManager : MonoBehaviour
         engagePlayerDeck.AddRange(playerDeckManager.playerDeck);
 
         Debug.Log($"Engage deck prepared with {engagePlayerDeck.Count} cards.");
-        OnEngageDeckReady?.Invoke(); // Notify listeners
     }
+//endregion
 
+//region DrawCard
+    //Draw Ramdom Card
     public Card DrawCardFromEngageDeck()
     {
         if (engagePlayerDeck == null || engagePlayerDeck.Count == 0)
@@ -87,6 +76,7 @@ public class BoardManager : MonoBehaviour
         return drawnCard;
     }
 
+    //Draw Card Filter
     public Card DrawCardFromEngageDeck(string cardType, int maxCost)
     {
         if (engagePlayerDeck == null || engagePlayerDeck.Count == 0)
@@ -111,9 +101,9 @@ public class BoardManager : MonoBehaviour
         // Remove the card from the Engage Deck
         engagePlayerDeck.Remove(drawnCard);
 
-        Debug.Log($"Card drawn: {drawnCard.cardName}");
         return drawnCard;
     }
+//endregion
 
 //region Sacrifire
     public bool IsSacrificePhaseActive() => isSacrificePhaseActive;
@@ -184,8 +174,7 @@ public class BoardManager : MonoBehaviour
 
         if (cardsToSacrifice.Contains(card))
         {
-            cardsToSacrifice.Remove(card);
-            interactionHandler.DeselectSacrifireAble();
+            DeselectCardForSacrifice(card);
         }
         else if (cardsToSacrifice.Count < requiredSacrifices)
         {
@@ -200,6 +189,7 @@ public class BoardManager : MonoBehaviour
             ProceedToPlacement();
         }
     }
+
     
     private void ClearSacrificeData()
     {
@@ -216,6 +206,39 @@ public class BoardManager : MonoBehaviour
             handler.ResetToDefault();
         }
     }
+
+    public void DeselectCardForSacrifice(GameObject card)
+    {
+        if (card == null)
+        {
+            Debug.LogError("Attempted to deselect a null card.");
+            return;
+        }
+
+        // Check if the card is in the sacrifice list
+        if (!cardsToSacrifice.Contains(card))
+        {
+            Debug.LogWarning($"Card '{card.name}' is not in the sacrifice list.");
+            return;
+        }
+
+        // Remove the card from the sacrifice list
+        cardsToSacrifice.Remove(card);
+        Debug.Log($"Card '{card.name}' removed from sacrifice list.");
+
+        // Reset the card's visuals
+        var interactionHandler = card.GetComponent<CardInteractionHandler>();
+        if (interactionHandler != null)
+        {
+            interactionHandler.DeselectSacrifireAble();
+        }
+        else
+        {
+            Debug.LogError($"Card '{card.name}' is missing a CardInteractionHandler component.");
+        }
+        UpdateSacrificeProgressText();
+    }
+
 //endregion
 
 //region Highlight
@@ -234,10 +257,12 @@ public class BoardManager : MonoBehaviour
     {
         foreach (var slot in playerSlots)
         {
+            if (slot == null) continue;
+
             var cardSlot = slot.GetComponent<CardSlot>();
             if (cardSlot != null && !cardSlot.IsOccupied())
             {
-                cardSlot.HighlightSlot();
+                cardSlot.ShowPlaceableUI();
             }
         }
     }
@@ -259,12 +284,32 @@ public class BoardManager : MonoBehaviour
             sacrificeProgressText.text = string.Empty;
         }
     }
+    
 //endregion
 
-public void ClearEngageDeck()
+//region Enemy
+    public void HandleEnemyTurn()
+    {
+        Debug.Log("EnemyTurn");
+    }
+//endregion
+
+    public void ClearEngageDeck()
     {
         engagePlayerDeck.Clear();
         Debug.Log("Engage deck cleared after the fight.");
     }
     
+    public void EnablePlayerControls()
+    {
+        Debug.Log("Player controls enabled.");
+        // Enable UI interactions and highlight slots, etc.
+    }
+
+    public void DisablePlayerControls()
+    {
+        Debug.Log("Player controls disabled.");
+        // Disable UI interactions and reset any highlights
+    }
+
 }

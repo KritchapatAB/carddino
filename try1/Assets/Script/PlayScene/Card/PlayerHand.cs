@@ -12,27 +12,16 @@ public class PlayerHand : MonoBehaviour
     private List<GameObject> instantiatedCards = new();
     private GameObject selectedCard;
 
-    public int maxHandSize = 20; 
+     private bool isInteractionEnabled = true;
+
+    public int maxHandSize = 7; 
 
     private void Start()
     {
-        if (boardManager == null)
-        {
-            Debug.LogError("BoardManager is not assigned in PlayerHand.");
-            return;
-        }
-
-        boardManager.OnEngageDeckReady += DrawInitialHand;
+        DrawInitialHand();
     }
 
-    private void OnDestroy()
-    {
-        if (boardManager != null)
-        {
-            boardManager.OnEngageDeckReady -= DrawInitialHand;
-        }
-    }
-
+//region DrawCard
     public void DrawCard(Card card)
     {
         GameObject newCard = Instantiate(cardPrefab, handPanel);
@@ -78,50 +67,57 @@ public class PlayerHand : MonoBehaviour
         }
     }
 
-    public void DrawCardFromDeck()
+    public void TryDrawCard()
     {
-        // Ensure the actual hand size is tracked from instantiated cards
-        int currentHandSize = instantiatedCards.Count;
+        if (!FindObjectOfType<TurnManager>().CanPlayerDrawCard())
+        {
+            Debug.LogWarning("Cannot draw more cards this turn!");
+            return;
+        }
 
-        if (currentHandSize >= maxHandSize)
+        if (playerHand.Count >= maxHandSize)
         {
             Debug.LogWarning("Cannot draw more cards. Hand is full!");
             return;
         }
 
-        // Use the new random draw method
-        Card card = boardManager.DrawCardFromEngageDeck();
+        // Use the deck to draw a card
+        Card drawnCard = boardManager.DrawCardFromEngageDeck();
 
-        if (card == null)
+        if (drawnCard == null)
         {
-            Debug.LogWarning("No cards left in the Engage Deck to draw!");
+            Debug.LogWarning("No cards left in the deck to draw!");
             return;
         }
 
-        // Instantiate the new card and add it to the hand
+        // Instantiate card into hand
         GameObject newCard = Instantiate(cardPrefab, handPanel);
         CardViz cardViz = newCard.GetComponent<CardViz>();
 
         if (cardViz != null)
         {
-            cardViz.LoadCard(card); // Load card visuals
+            cardViz.LoadCard(drawnCard);
         }
 
         CardInteractionHandler interactionHandler = newCard.GetComponent<CardInteractionHandler>();
         if (interactionHandler != null)
         {
-            interactionHandler.cardData = card; // Assign card data
+            interactionHandler.cardData = drawnCard;
             interactionHandler.SetCardState(CardInteractionHandler.CardState.InHand);
         }
 
-        // Add the new card to the instantiatedCards list
+        // Add card to player hand
         instantiatedCards.Add(newCard);
+        playerHand.Add(drawnCard);
 
-        // Add to the logical `playerHand` list
-        playerHand.Add(card);
+        Debug.Log($"Player drew card: {drawnCard.cardName}");
 
-        Debug.Log($"Card drawn: {card.cardName}");
+        // Notify TurnManager that a card has been drawn
+        FindObjectOfType<TurnManager>().NotifyCardDrawn();
     }
+
+
+//endregion
 
 //region PlacingCard
     public void SelectCard(GameObject card)
@@ -159,58 +155,89 @@ public class PlayerHand : MonoBehaviour
     }
 
     public void PlaceSelectedCard(GameObject slot)
+{
+    if (selectedCard != null)
+    {
+        Card cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
+
+        if (cardData == null)
+        {
+            Debug.LogError("CardData is null for the selected card.");
+            return;
+        }
+
+        if (cardData.cost > 0 && boardManager != null && !boardManager.AreSacrificesComplete())
+        {
+            Debug.LogWarning("Cannot place card. Sacrifices not complete.");
+            return;
+        }
+
+        // Place the card visually
+        slot.GetComponent<CardSlot>().SetOccupied(true);
+        selectedCard.transform.SetParent(slot.transform);
+        selectedCard.transform.localPosition = Vector3.zero;
+        selectedCard.transform.localScale = Vector3.one;
+
+        selectedCard.GetComponent<CardInteractionHandler>().SetCardState(CardInteractionHandler.CardState.OnBoard);
+
+        // Remove the card from the hand tracking
+        instantiatedCards.Remove(selectedCard);
+        playerHand.Remove(cardData);
+
+        selectedCard = null;
+
+        // Handle board manager state
+        boardManager.DestroySacrificedCards();
+        boardManager.DisableSacrificePhase();
+
+        Debug.Log("Card placed successfully.");
+    }
+    else
+    {
+        Debug.LogWarning("No card is selected for placement.");
+    }
+}
+
+
+    public void DeselectCard()
     {
         if (selectedCard != null)
         {
-            Card cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
-
-            if (cardData == null)
-            {
-                Debug.LogError("CardData is null for the selected card.");
-                return;
-            }
-
-            if (cardData.cost > 0 && boardManager != null && !boardManager.AreSacrificesComplete())
-            {
-                Debug.LogWarning("Cannot place card. Sacrifices not complete.");
-                return;
-            }
-
-            // Place the card visually
-            slot.GetComponent<CardSlot>().SetOccupied(true);
-            selectedCard.transform.SetParent(slot.transform);
-            selectedCard.transform.localPosition = Vector3.zero;
-            selectedCard.transform.localScale = Vector3.one;
-
-            selectedCard.GetComponent<CardInteractionHandler>().SetCardState(CardInteractionHandler.CardState.OnBoard);
-
-            // Remove the card from the hand tracking
-            instantiatedCards.Remove(selectedCard);
-            playerHand.Remove(cardData);
-
-            selectedCard = null;
-
-            // Handle board manager state
-            boardManager.DestroySacrificedCards();
-            boardManager.DisableSacrificePhase();
-
-            Debug.Log("Card placed successfully.");
-        }
-        else
-        {
-            Debug.LogWarning("No card is selected for placement.");
-        }
-    }
-
-    private void DeselectCard()
-    {
-        var interactionHandler = selectedCard?.GetComponent<CardInteractionHandler>();
-        if (interactionHandler != null)
-        {
-            interactionHandler.ResetToDefault();
-            interactionHandler.EnableHoverEffect(); // Re-enable hover effects
+            var interactionHandler = selectedCard.GetComponent<CardInteractionHandler>();
+            interactionHandler?.ResetToDefault();
+            interactionHandler?.EnableHoverEffect(); // Re-enable hover effects
         }
         selectedCard = null;
     }
+
 //endregion
+
+    public void TogglePlayerInteractions(bool enable)
+    {
+        isInteractionEnabled = enable;
+
+        foreach (var card in instantiatedCards)
+        {
+            var interactionHandler = card.GetComponent<CardInteractionHandler>();
+            if (interactionHandler != null)
+            {
+                if (enable)
+                    interactionHandler.EnableHoverEffect();
+                else
+                    interactionHandler.DisableHoverEffect();
+            }
+        }
+    }
+
+
+    public bool HasSelectedCard()
+    {
+        return selectedCard != null;
+    }
+
+    public GameObject GetSelectedCard()
+    {
+        return selectedCard;
+    }
+
 }

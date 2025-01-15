@@ -12,9 +12,6 @@ public class DeckClickHandler : MonoBehaviour, IPointerClickHandler
             Debug.LogError("PlayerHand is not assigned to DeckClickHandler!");
             return;
         }
-
-        // Trigger card draw
-        Debug.LogWarning("Bruh!");
-        playerHand.DrawCardFromDeck();
+        playerHand.TryDrawCard();
     }
 }

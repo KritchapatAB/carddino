@@ -7,26 +7,15 @@ public class PlayerDeckManager : MonoBehaviour
     public List<Card> playerDeck = new(); // Player's full deck
     public CardDatabase cardDatabase;
 
-    public event Action OnPlayerDeckReady; // Fires when playerDeck is ready
-
-    private bool isPlayerDeckInitialized = false;
-
     void Start()
     {
-        if (cardDatabase == null)
-        {
-            Debug.LogError("CardDatabase is not assigned!");
-            return;
-        }
-
-        // For development only
         InitializePlayerDeck();
     }
 
     // Initialize the player's deck
     public void InitializePlayerDeck()
     {
-        if (isPlayerDeckInitialized) return;
+        // if (isPlayerDeckInitialized) return;
 
         var availableCards = new List<Card>(cardDatabase.cards);
         playerDeck.Clear();
@@ -44,7 +33,5 @@ public class PlayerDeckManager : MonoBehaviour
         }
 
         Debug.Log($"Player deck initialized with {playerDeck.Count} cards.");
-        isPlayerDeckInitialized = true;
-        OnPlayerDeckReady?.Invoke();
     }
 }

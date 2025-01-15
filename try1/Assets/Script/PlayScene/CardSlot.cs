@@ -4,48 +4,83 @@ using UnityEngine.EventSystems;
 public class CardSlot : MonoBehaviour, IPointerClickHandler
 {
     private bool isOccupied;
+    [SerializeField] private GameObject placeableIcon; // Assign the PlaceableIcon in the Inspector
 
-    // Handle click event on the card slot
+    private PlayerHand playerHand;
+
+    private void Start()
+    {
+        playerHand = FindObjectOfType<PlayerHand>();
+        UpdatePlaceableIcon();
+    }
+
+    private void Update()
+    {
+        // Continuously check the slot's eligibility when a card is selected
+        UpdatePlaceableIcon();
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         if (isOccupied) return;
 
-        var playerHand = FindObjectOfType<PlayerHand>();
-        if (playerHand != null)
+        if (playerHand != null && playerHand.HasSelectedCard())
         {
-            playerHand.PlaceSelectedCard(gameObject);
-            ResetSlotVisual();
+            var selectedCard = playerHand.GetSelectedCard(); // Assume this method fetches the selected card
+            if (CanPlaceCard(selectedCard))
+            {
+                playerHand.PlaceSelectedCard(gameObject); // Place the card
+                SetOccupied(true); // Mark the slot as occupied
+            }
         }
     }
-
-    // Highlight the slot with a green color
-    public void HighlightSlot() => SetSlotColor(Color.green);
-
-    // Reset the slot's visual to its default state
-    public void ResetSlotVisual() => SetSlotColor(Color.white);
 
     public bool IsOccupied() => isOccupied;
 
     public void SetOccupied(bool occupied)
     {
         isOccupied = occupied;
+        HidePlaceableUI();
+    }
 
-        // Optionally, update visual feedback based on the slot's occupation status
-        var spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.color = occupied ? Color.gray : Color.white;
-        }
-}
-
-
-    // Update the slot's color
-    private void SetSlotColor(Color color)
+    // Check if the selected card can be placed in this slot
+    private bool CanPlaceCard(GameObject selectedCard)
     {
-        var spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
+        if (selectedCard == null || isOccupied)
         {
-            spriteRenderer.color = color;
+            return false;
+        }
+
+        // Add more conditions if necessary (e.g., checking card type, field-specific rules)
+        return true;
+    }
+
+    // Update the visibility of the PlaceableIcon
+    private void UpdatePlaceableIcon()
+    {
+        if (placeableIcon != null && playerHand != null)
+        {
+            var selectedCard = playerHand.GetSelectedCard();
+            bool canPlace = selectedCard != null && CanPlaceCard(selectedCard);
+            placeableIcon.SetActive(canPlace);
+        }
+    }
+    
+    public void ShowPlaceableUI()
+    {
+        var placeableUI = transform.Find("PlaceableUI");
+        if (placeableUI != null)
+        {
+            placeableUI.gameObject.SetActive(true);
+        }
+    }
+
+    public void HidePlaceableUI()
+    {
+        var placeableUI = transform.Find("PlaceableUI");
+        if (placeableUI != null)
+        {
+            placeableUI.gameObject.SetActive(false);
         }
     }
 }

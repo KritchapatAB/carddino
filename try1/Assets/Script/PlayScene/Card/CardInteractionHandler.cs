@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI; // Required for Image component
 
 public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
@@ -14,15 +15,23 @@ public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPoin
     public float hoverScaleMultiplier = 1.2f;
     public float selectedScaleMultiplier = 1.2f;
 
+    [Header("Highlight Settings")]
+    public Image highlightOverlay; // Reference to the HighlightOverlay Image
+
     private void Start()
     {
         originalScale = transform.localScale;
+
+        // Ensure the highlight overlay is hidden by default
+        if (highlightOverlay != null)
+        {
+            highlightOverlay.enabled = false;
+        }
     }
 
     public void SetCardState(CardState newState)
     {
         currentState = newState;
-        Debug.Log($"Card state updated to: {newState}");
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -45,6 +54,13 @@ public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPoin
     {
         var boardManager = FindObjectOfType<BoardManager>();
         var playerHand = FindObjectOfType<PlayerHand>();
+        var turnManager = FindObjectOfType<TurnManager>();
+
+        if (turnManager.currentTurn != TurnManager.TurnState.PlayerTurn)
+        {
+            Debug.LogWarning("It's not the player's turn! Card interaction is disabled.");
+            return;
+        }
 
         if (boardManager != null && boardManager.IsSacrificePhaseActive())
         {
@@ -86,25 +102,54 @@ public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPoin
 
     public void HighlightSacrifireAble()
     {
-        GetComponent<SpriteRenderer>().color = Color.yellow; // Indicate it's sacrificial
+        if (highlightOverlay != null)
+        {
+            highlightOverlay.enabled = true;
+            highlightOverlay.color = Color.yellow; // Indicate it's sacrificial
+        }
+
         transform.localScale = originalScale * 0.9f;
     }
 
     public void HighlightSelectedForSacrifice()
     {
-        GetComponent<SpriteRenderer>().color = Color.red; // Strong highlight for selected
+        if (highlightOverlay != null)
+        {
+            highlightOverlay.enabled = true;
+            highlightOverlay.color = Color.red; // Strong highlight for selected
+        }
+
         transform.localScale = originalScale * 0.8f;
     }
 
     public void DeselectSacrifireAble()
     {
-        GetComponent<SpriteRenderer>().color = Color.white;
-        transform.localScale = originalScale * 0.9f; // Back to sacrificial highlight
+        // Find the HighlightOverlay under CardTemplate
+        var highlightOverlay = transform.Find("CardTemplate/HighlightOverlay")?.GetComponent<UnityEngine.UI.Image>();
+
+        if (highlightOverlay == null)
+        {
+            Debug.LogError("HighlightOverlay or its Image component is missing!");
+            return;
+        }
+
+        // Update the highlight color to "sacrifice-able"
+        highlightOverlay.color = Color.yellow; 
+        highlightOverlay.enabled = true; // Ensure the overlay is visible
+
+        // Revert to "sacrifice-able" scaling
+        transform.localScale = originalScale * 0.9f;
     }
+
+
 
     public void ResetToDefault()
     {
-        GetComponent<SpriteRenderer>().color = Color.white;
+        if (highlightOverlay != null)
+        {
+            highlightOverlay.enabled = false;
+        }
+
         ResetScale(); // Return to normal
     }
 

@@ -40,6 +40,15 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: HighlightOverlay
+    uniqueID: 3044787795
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: FrontCard
+    uniqueID: 2050204655
+    locked: 0
+  - name: BackCard
+    uniqueID: 3652036213
     locked: 0

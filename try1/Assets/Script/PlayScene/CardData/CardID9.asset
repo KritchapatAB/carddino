@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aff16f758dcaa234a8467935521aaea7, type: 3}
   m_Name: CardID9
   m_EditorClassIdentifier: 
-  id: 8
+  id: 9
   cardName: Bronto
   cardClass: {fileID: 21300000, guid: 72c1bc3d3c00fdc42980cc837d01deea, type: 3}
   cost: 3
