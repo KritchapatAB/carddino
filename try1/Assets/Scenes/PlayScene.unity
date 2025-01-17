@@ -574,50 +574,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5543834200248162355, guid: cdd88d33c5f104947b76af95bd52e354, type: 3}
   m_PrefabInstance: {fileID: 577019430}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &355960988
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 355960990}
-  - component: {fileID: 355960989}
-  m_Layer: 0
-  m_Name: RandomCardManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &355960989
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 355960988}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9c712ac7e6dec744e960b79c5c0ce568, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &355960990
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 355960988}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 953, y: 80, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &357439931
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1613,7 +1569,6 @@ GameObject:
   - component: {fileID: 917787133}
   - component: {fileID: 917787134}
   - component: {fileID: 917787136}
-  - component: {fileID: 917787135}
   m_Layer: 5
   m_Name: PlayerHand
   m_TagString: Untagged
@@ -1664,18 +1619,6 @@ MonoBehaviour:
   m_Spacing: {x: 0, y: 0}
   m_Constraint: 2
   m_ConstraintCount: 1
---- !u!114 &917787135
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 917787132}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9c712ac7e6dec744e960b79c5c0ce568, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &917787136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4873,7 +4816,6 @@ SceneRoots:
   - {fileID: 1339309822}
   - {fileID: 1481241691}
   - {fileID: 477211104}
-  - {fileID: 355960990}
   - {fileID: 1289307152}
   - {fileID: 813473004}
   - {fileID: 1509834980}
