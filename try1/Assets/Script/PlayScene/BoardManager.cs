@@ -19,6 +19,8 @@ public class BoardManager : MonoBehaviour
     public List<GameObject> enemySlots = new(); // Add enemy card slots
     public EnemyDeckManager enemyDeckManager;
 
+    public event Action OnDeckChanged;
+
 //region StartGame
     void Start()
     {
@@ -73,6 +75,9 @@ public class BoardManager : MonoBehaviour
         engagePlayerDeck.RemoveAt(randomIndex);
 
         Debug.Log($"Card drawn randomly: {drawnCard.cardName}");
+
+        OnDeckChanged?.Invoke();
+
         return drawnCard;
     }
 
@@ -101,6 +106,8 @@ public class BoardManager : MonoBehaviour
         // Remove the card from the Engage Deck
         engagePlayerDeck.Remove(drawnCard);
 
+
+        OnDeckChanged?.Invoke();
         return drawnCard;
     }
 //endregion

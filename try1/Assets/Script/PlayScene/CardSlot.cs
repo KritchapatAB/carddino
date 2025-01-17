@@ -26,11 +26,15 @@ public class CardSlot : MonoBehaviour, IPointerClickHandler
 
         if (playerHand != null && playerHand.HasSelectedCard())
         {
-            var selectedCard = playerHand.GetSelectedCard(); // Assume this method fetches the selected card
-            if (CanPlaceCard(selectedCard))
+            var selectedCard = playerHand.GetSelectedCard();
+            if (CanPlaceCard(selectedCard, logWarnings: true)) // Allow logs for placement attempts
             {
                 playerHand.PlaceSelectedCard(gameObject); // Place the card
                 SetOccupied(true); // Mark the slot as occupied
+            }
+            else
+            {
+                Debug.LogWarning("Cannot place card. Conditions not met.");
             }
         }
     }
@@ -43,29 +47,38 @@ public class CardSlot : MonoBehaviour, IPointerClickHandler
         HidePlaceableUI();
     }
 
-    // Check if the selected card can be placed in this slot
-    private bool CanPlaceCard(GameObject selectedCard)
-    {
-        if (selectedCard == null || isOccupied)
-        {
-            return false;
-        }
+    private bool CanPlaceCard(GameObject selectedCard, bool logWarnings = true)
+{
+    if (selectedCard == null || isOccupied) return false;
 
-        // Add more conditions if necessary (e.g., checking card type, field-specific rules)
-        return true;
+    // Validate if the card can be placed
+    var cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
+    if (cardData == null)
+    {
+        if (logWarnings) Debug.LogError("CardData is missing or null.");
+        return false;
     }
 
-    // Update the visibility of the PlaceableIcon
+    if (cardData.cost > 0 && !FindObjectOfType<BoardManager>().AreSacrificesComplete())
+    {
+        if (logWarnings) Debug.LogWarning("Cannot place card. Sacrifices not complete.");
+        return false;
+    }
+    return true;
+}
+
+
     private void UpdatePlaceableIcon()
     {
         if (placeableIcon != null && playerHand != null)
         {
             var selectedCard = playerHand.GetSelectedCard();
-            bool canPlace = selectedCard != null && CanPlaceCard(selectedCard);
+            bool canPlace = selectedCard != null && CanPlaceCard(selectedCard, logWarnings: false); // Suppress logs
             placeableIcon.SetActive(canPlace);
         }
     }
-    
+
+
     public void ShowPlaceableUI()
     {
         var placeableUI = transform.Find("PlaceableUI");

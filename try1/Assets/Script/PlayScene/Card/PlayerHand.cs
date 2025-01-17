@@ -116,7 +116,6 @@ public class PlayerHand : MonoBehaviour
         FindObjectOfType<TurnManager>().NotifyCardDrawn();
     }
 
-
 //endregion
 
 //region PlacingCard
@@ -155,49 +154,49 @@ public class PlayerHand : MonoBehaviour
     }
 
     public void PlaceSelectedCard(GameObject slot)
-{
-    if (selectedCard != null)
     {
-        Card cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
-
-        if (cardData == null)
+        if (selectedCard != null)
         {
-            Debug.LogError("CardData is null for the selected card.");
-            return;
-        }
+            Card cardData = selectedCard.GetComponent<CardInteractionHandler>()?.cardData;
 
-        if (cardData.cost > 0 && boardManager != null && !boardManager.AreSacrificesComplete())
+            if (cardData == null)
+            {
+                Debug.LogError("CardData is null for the selected card.");
+                return;
+            }
+
+            // Ensure sacrifices are complete before proceeding
+            if (cardData.cost > 0 && boardManager != null && !boardManager.AreSacrificesComplete())
+            {
+                Debug.LogWarning("Cannot place card. Sacrifices not complete.");
+                return;
+            }
+
+            // Now proceed to place the card visually and mark the slot as occupied
+            slot.GetComponent<CardSlot>().SetOccupied(true);
+            selectedCard.transform.SetParent(slot.transform);
+            selectedCard.transform.localPosition = Vector3.zero;
+            selectedCard.transform.localScale = Vector3.one;
+
+            selectedCard.GetComponent<CardInteractionHandler>().SetCardState(CardInteractionHandler.CardState.OnBoard);
+
+            // Remove the card from the hand tracking
+            instantiatedCards.Remove(selectedCard);
+            playerHand.Remove(cardData);
+
+            selectedCard = null;
+
+            // Handle board manager state
+            boardManager.DestroySacrificedCards();
+            boardManager.DisableSacrificePhase();
+
+            Debug.Log("Card placed successfully.");
+        }
+        else
         {
-            Debug.LogWarning("Cannot place card. Sacrifices not complete.");
-            return;
+            Debug.LogWarning("No card is selected for placement.");
         }
-
-        // Place the card visually
-        slot.GetComponent<CardSlot>().SetOccupied(true);
-        selectedCard.transform.SetParent(slot.transform);
-        selectedCard.transform.localPosition = Vector3.zero;
-        selectedCard.transform.localScale = Vector3.one;
-
-        selectedCard.GetComponent<CardInteractionHandler>().SetCardState(CardInteractionHandler.CardState.OnBoard);
-
-        // Remove the card from the hand tracking
-        instantiatedCards.Remove(selectedCard);
-        playerHand.Remove(cardData);
-
-        selectedCard = null;
-
-        // Handle board manager state
-        boardManager.DestroySacrificedCards();
-        boardManager.DisableSacrificePhase();
-
-        Debug.Log("Card placed successfully.");
     }
-    else
-    {
-        Debug.LogWarning("No card is selected for placement.");
-    }
-}
-
 
     public void DeselectCard()
     {
