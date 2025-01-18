@@ -57,7 +57,6 @@ public class StartGameManager : MonoBehaviour,ICardSelectionHandler
         }
     }
 
-
     public void ContinueSelection()
     {
         if (selectingAttackers && selectedAttackers.Count == maxAttackers)
@@ -137,7 +136,7 @@ public class StartGameManager : MonoBehaviour,ICardSelectionHandler
             var clickable = cardObject.GetComponent<CardVizClickable>();
             if (clickable != null)
             {
-                clickable.selectionHandler = this; // Assign StartGameManager as the handler
+                clickable.selectionHandler = this; // Dynamically assign this manager
             }
         }
     }

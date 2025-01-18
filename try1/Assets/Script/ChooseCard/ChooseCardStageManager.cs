@@ -23,47 +23,48 @@ public class ChooseCardStageManager : MonoBehaviour, ICardSelectionHandler
     {
         if (selectedCards.Count < maxSelectableCards)
         {
-            selectedCards.Add(card); // Add card to selection
+            selectedCards.Add(card);
             Debug.Log($"Selected Card: {card.cardName}");
-            return true; // Successful selection
+            return true;
         }
 
         Debug.LogWarning("Cannot select more cards.");
-        return false; // Selection failed (max reached)
+        return false;
     }
 
     public void DeselectCard(Card card)
     {
         if (selectedCards.Contains(card))
         {
-            selectedCards.Remove(card); // Remove card from selection
+            selectedCards.Remove(card);
             Debug.Log($"Deselected Card: {card.cardName}");
         }
     }
 
+
     private void PopulateCardsExcludingBoss()
     {
-        // Clear any existing card objects
+        // Clear existing card objects
         foreach (Transform child in cardDisplay.transform)
         {
             Destroy(child.gameObject);
         }
 
         List<Card> filteredCards = cardDatabase.cardAssets.FindAll(card => card.dinoType.ToLower() != "boss");
-        int cardsToDisplay = 5; // Show a fixed number of cards
+        int cardsToDisplay = 5;
 
         for (int i = 0; i < cardsToDisplay; i++)
         {
-            Card randomCard = filteredCards[Random.Range(0, filteredCards.Count)]; // Get a random card
+            Card randomCard = filteredCards[Random.Range(0, filteredCards.Count)];
             GameObject cardObject = Instantiate(cardTemplate, cardDisplay.transform);
 
             var cardViz = cardObject.GetComponent<CardViz>();
-            cardViz?.LoadCard(randomCard); // Load card data into CardViz
+            cardViz?.LoadCard(randomCard);
 
             var clickable = cardObject.GetComponent<CardVizClickable>();
             if (clickable != null)
             {
-                clickable.selectionHandler = this; // Assign this manager as the handler
+                clickable.selectionHandler = this; // Assign the current manager as the handler
             }
         }
     }
