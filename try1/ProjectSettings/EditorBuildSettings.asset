@@ -23,4 +23,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ChooseCard.unity
     guid: 4eef8213e574e8b4ab7a349a371febca
+  - enabled: 1
+    path: Assets/Scenes/DeleteCard.unity
+    guid: f36e90b64e563b04cb992c572e2f5ed5
+  - enabled: 1
+    path: Assets/Scenes/ShopStage.unity
+    guid: 100c78556b24e3441804835ecc2c6686
   m_configObjects: {}

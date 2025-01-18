@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class DeleteCard : MonoBehaviour
 {
@@ -12,5 +13,11 @@ public class DeleteCard : MonoBehaviour
     {
         GameManager.Instance.SaveData(); // Save changes when leaving
     }
+
+    public void ChooseCard()
+    {
+        SceneManager.LoadScene("ChooseCard");
+    }
+
 }
 

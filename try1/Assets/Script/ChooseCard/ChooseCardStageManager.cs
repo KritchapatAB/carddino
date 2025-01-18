@@ -79,7 +79,7 @@ public class ChooseCardStageManager : MonoBehaviour, ICardSelectionHandler
                 GameManager.Instance.AddToPlayerDeck(card.id); // Add to player's deck via GameManager
             }
 
-            // Save changes and return to ChooseStage
+            GameManager.Instance.AdvanceStage();
             GameManager.Instance.SaveData();
             Debug.Log("Card added and saved. Returning to ChooseStage.");
             SceneManager.LoadScene("ChooseStage");
@@ -89,4 +89,10 @@ public class ChooseCardStageManager : MonoBehaviour, ICardSelectionHandler
             Debug.LogWarning("You must select exactly 1 card to proceed.");
         }
     }
+
+    public void DeleteCardFromDeck()
+    {
+        SceneManager.LoadScene("DeleteCard");
+    }
+
 }
