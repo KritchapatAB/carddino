@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-public class StartGameManager : MonoBehaviour
+public class StartGameManager : MonoBehaviour,ICardSelectionHandler
 {
     [Header("References")]
     public CardDatabase cardDatabase;
@@ -56,6 +56,7 @@ public class StartGameManager : MonoBehaviour
             selectedDefenders.Remove(card);
         }
     }
+
 
     public void ContinueSelection()
     {
@@ -130,9 +131,16 @@ public class StartGameManager : MonoBehaviour
             Card randomCard = filteredCards[Random.Range(0, filteredCards.Count)];
             GameObject cardObject = Instantiate(cardTemplate, cardDisplay.transform);
 
-            cardObject.GetComponent<CardViz>()?.LoadCard(randomCard);
-            cardObject.GetComponent<CardVizClickable>().startGameManager = this;
+            var cardViz = cardObject.GetComponent<CardViz>();
+            cardViz?.LoadCard(randomCard);
+
+            var clickable = cardObject.GetComponent<CardVizClickable>();
+            if (clickable != null)
+            {
+                clickable.selectionHandler = this; // Assign StartGameManager as the handler
+            }
         }
     }
+
 }
 

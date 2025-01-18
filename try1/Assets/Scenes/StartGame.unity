@@ -431,9 +431,9 @@ MonoBehaviour:
   cardTemplate: {fileID: 1573929971021238742, guid: f2e4531bfdc105b40b767f0b63b232e3, type: 3}
   cardDisplay: {fileID: 1134457465}
   continueButton: {fileID: 779309244}
+  uiMessageText: {fileID: 1316194955}
   maxAttackers: 3
   maxDefenders: 2
-  uiMessageText: {fileID: 1316194955}
 --- !u!4 &1058565948
 Transform:
   m_ObjectHideFlags: 0

@@ -1,7 +1,7 @@
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI; // Required for Button reference
+using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
 {

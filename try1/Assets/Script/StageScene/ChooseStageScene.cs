@@ -53,6 +53,11 @@ public class ChooseStageScene : MonoBehaviour
         SceneManager.LoadScene("PlayerDeckStage");
     }
 
+    public void ChooseCard()
+    {
+        SceneManager.LoadScene("ChooseCard");
+    }
+
     public void ReturnMainMenu()
     {
         GameManager.Instance.SaveData();
