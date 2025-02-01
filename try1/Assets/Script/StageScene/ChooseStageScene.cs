@@ -25,8 +25,6 @@ public class ChooseStageScene : MonoBehaviour
     private void UpdateUI()
     {
         var saveData = GameManager.Instance.CurrentSaveData;
-
-        // Update the money and current stage display
         if (coinUIText != null)
         {
             coinUIText.text = $"{saveData.money}";

@@ -94,5 +94,4 @@ public class ChooseCardStageManager : MonoBehaviour, ICardSelectionHandler
     {
         SceneManager.LoadScene("DeleteCard");
     }
-
 }

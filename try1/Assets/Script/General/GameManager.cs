@@ -1,10 +1,11 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-
     public PlayerSaveData CurrentSaveData { get; private set; }
+    public StageConfiguration CurrentStage { get; private set; } 
     private bool saveDataLoaded = false;
 
     private void Awake()
@@ -81,5 +82,23 @@ public class GameManager : MonoBehaviour
     public void SubtractMoney(int amount)
     {
         CurrentSaveData.money -= amount;
+    }
+
+    // ✅ Store selected stage
+    public void SetCurrentStage(StageConfiguration stage)
+    {
+        CurrentStage = stage;
+    }
+
+    // ✅ Called when player wins a stage
+    public void PlayerWin()
+    {
+        CurrentSaveData.isSaveValid = true;
+        AddMoney(2); // Reward money
+        AdvanceStage();
+        SaveData();
+
+        // Instead of unlocking stages, show a new random selection
+        SceneManager.LoadScene("ChooseStage"); // Return to stage selection
     }
 }

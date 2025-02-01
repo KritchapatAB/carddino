@@ -15,7 +15,6 @@ public class PlayerDeckStage : MonoBehaviour
 
     private void LoadAndDisplayPlayerDeck()
     {
-        // Get the playerDeckIds from GameManager
         List<int> playerDeckIds = GameManager.Instance.CurrentSaveData.playerDeckIds;
 
         if (playerDeckIds == null || playerDeckIds.Count == 0)
@@ -24,20 +23,19 @@ public class PlayerDeckStage : MonoBehaviour
             return;
         }
 
-        // Clear any existing card objects
+        // Clear existing cards
         foreach (Transform child in cardDisplayArea)
         {
             Destroy(child.gameObject);
         }
 
-        // Iterate over playerDeckIds and load the cards
+        // Instantiate cards and add to the scrollable content
         foreach (int cardId in playerDeckIds)
         {
             Card cardData = cardDatabase.GetCardById(cardId);
 
             if (cardData != null)
             {
-                // Instantiate card UI and populate it
                 GameObject cardObject = Instantiate(cardTemplate, cardDisplayArea);
                 CardViz cardViz = cardObject.GetComponent<CardViz>();
                 cardViz.LoadCard(cardData);
@@ -48,6 +46,7 @@ public class PlayerDeckStage : MonoBehaviour
             }
         }
     }
+
 
     public void ReturnToChooseStage()
     {

@@ -7,6 +7,5 @@ public class PlayerSaveData
     public List<int> playerDeckIds;
     public int money;
     public int currentStage;
-    public bool isSaveValid; 
+    public bool isSaveValid;
 }
-

@@ -270,7 +270,7 @@ GameObject:
   - component: {fileID: 79760602}
   - component: {fileID: 79760601}
   m_Layer: 5
-  m_Name: Button
+  m_Name: DeleteBTN
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -477,7 +477,7 @@ GameObject:
   - component: {fileID: 533302461}
   - component: {fileID: 533302460}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Delete
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -522,7 +522,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: Delete
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -549,8 +549,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 28
+  m_fontSizeBase: 28
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -696,7 +696,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardDatabase: {fileID: 815238555}
-  cardTemplate: {fileID: 1573929971021238742, guid: f2e4531bfdc105b40b767f0b63b232e3, type: 3}
+  cardTemplate: {fileID: 7974549383882601481, guid: 91b2393e3870e9049b26d41ad6b66e45, type: 3}
   cardDisplay: {fileID: 1070796119}
   maxSelectableCards: 1
 --- !u!4 &866964090
