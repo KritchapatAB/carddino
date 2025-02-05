@@ -58,23 +58,33 @@ public class StartGameManager : MonoBehaviour,ICardSelectionHandler
     }
 
     public void ContinueSelection()
+{
+    if (selectingAttackers && selectedAttackers.Count == maxAttackers)
     {
-        if (selectingAttackers && selectedAttackers.Count == maxAttackers)
+        selectingAttackers = false;
+        UpdateUI();
+        PopulateCardsByType("Defender");
+    }
+    else if (!selectingAttackers && selectedDefenders.Count == maxDefenders)
+    {
+        // ✅ Ensure GameManager exists before calling LastStageChoicesClear
+        if (GameManager.Instance != null)
         {
-            selectingAttackers = false;
-            UpdateUI();
-            PopulateCardsByType("Defender");
-        }
-        else if (!selectingAttackers && selectedDefenders.Count == maxDefenders)
-        {
-            SavePlayerData();
-            SceneManager.LoadScene("ChooseStage");
+            GameManager.Instance.LastStageChoicesClear();
         }
         else
         {
-            Debug.LogWarning("Selection incomplete.");
+            Debug.LogWarning("GameManager is not initialized yet. Cannot clear LastStageChoices.");
         }
+
+        SavePlayerData();
+        SceneManager.LoadScene("ChooseStage");
     }
+    else
+    {
+        Debug.LogWarning("Selection incomplete.");
+    }
+}
 
     private void SavePlayerData()
     {

@@ -34,11 +34,30 @@ public class EnemyDeckManager : MonoBehaviour
         FillDeckWithRandomCards("Defender", stageConfig.maxDefenders, stageConfig.minDefenderCost, stageConfig.maxDefenderCost);
         FillDeckWithRandomCards("Normal", stageConfig.maxNormals, stageConfig.minNormalCost, stageConfig.maxNormalCost);
 
-        // Ensure deck doesn't exceed maximum size
+        // 🔥 Apply Challenge Modifiers (Boss fights DO NOT use these)
+        if (stageConfig.stageType == StageType.Challenge)
+        {
+            ApplyChallengeModifiers();
+        }
+
+        // Trim deck to max size
         TrimDeckToMaxSize(stageConfig.maxDeckSize);
 
         Debug.Log($"Enemy deck initialized with {enemyDeck.Count} cards.");
     }
+
+    // 🔥 Apply Challenge Modifiers (+2 Health, +1 Damage)
+    private void ApplyChallengeModifiers()
+    {
+        foreach (var card in enemyDeck)
+        {
+            card.health += 2;  // 🔹 Challenge bonus: +2 Health
+            card.damage += 1;  // 🔹 Challenge bonus: +1 Damage
+        }
+
+        Debug.Log($"Applied Challenge modifiers: +2 Health, +1 Damage.");
+    }
+
 
     private void AddSpecificCards(List<SpecificCardEntry> specificCards)
     {

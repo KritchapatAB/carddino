@@ -105,6 +105,7 @@ public class DeleteCard : MonoBehaviour, ICardSelectionHandler
                 GameManager.Instance.RemoveFromPlayerDeck(card.id); // Add to player's deck via GameManager
             }
 
+            GameManager.Instance.LastStageChoicesClear();
             GameManager.Instance.AdvanceStage();
             GameManager.Instance.SaveData();
             Debug.Log($"Deleted card from deck.");

@@ -80,6 +80,7 @@ public class ChooseCardStageManager : MonoBehaviour, ICardSelectionHandler
             }
 
             GameManager.Instance.AdvanceStage();
+            GameManager.Instance.LastStageChoicesClear();
             GameManager.Instance.SaveData();
             Debug.Log("Card added and saved. Returning to ChooseStage.");
             SceneManager.LoadScene("ChooseStage");

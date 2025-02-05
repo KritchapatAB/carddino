@@ -110,10 +110,10 @@ public class ShopStage : MonoBehaviour, ICardSelectionHandler
         }
 
         saveData.money -= totalCost; // Deduct total cost from player money
-        GameManager.Instance.SaveData();
-
         Debug.Log($"Confirmed purchase. Total cost: {totalCost}. Returning to ChooseStage.");
         GameManager.Instance.AdvanceStage();
+        GameManager.Instance.LastStageChoicesClear();
+        GameManager.Instance.SaveData();
         SceneManager.LoadScene("ChooseStage");
     }
 }
