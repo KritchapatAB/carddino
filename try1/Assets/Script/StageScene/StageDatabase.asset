@@ -15,6 +15,7 @@ MonoBehaviour:
   stageConfigs:
   - stageName: Easy
     stageType: 0
+    difficulty: 0
     maxDeckSize: 7
     maxAttackers: 2
     maxDefenders: 2
@@ -30,6 +31,7 @@ MonoBehaviour:
     bonusDamage: 0
   - stageName: Easy(Challenge)
     stageType: 1
+    difficulty: 0
     maxDeckSize: 7
     maxAttackers: 2
     maxDefenders: 2
@@ -45,6 +47,7 @@ MonoBehaviour:
     bonusDamage: 1
   - stageName: Boss1
     stageType: 2
+    difficulty: 0
     maxDeckSize: 2
     maxAttackers: 0
     maxDefenders: 1
@@ -63,6 +66,7 @@ MonoBehaviour:
     bonusDamage: 0
   - stageName: Boss2
     stageType: 2
+    difficulty: 1
     maxDeckSize: 2
     maxAttackers: 0
     maxDefenders: 1
@@ -81,6 +85,7 @@ MonoBehaviour:
     bonusDamage: 0
   - stageName: Boss3
     stageType: 2
+    difficulty: 2
     maxDeckSize: 3
     maxAttackers: 1
     maxDefenders: 1
@@ -99,6 +104,7 @@ MonoBehaviour:
     bonusDamage: 0
   - stageName: ChooseCard
     stageType: 4
+    difficulty: 0
     maxDeckSize: 0
     maxAttackers: 0
     maxDefenders: 0
@@ -114,6 +120,7 @@ MonoBehaviour:
     bonusDamage: 1
   - stageName: Shop
     stageType: 3
+    difficulty: 0
     maxDeckSize: 0
     maxAttackers: 0
     maxDefenders: 0
@@ -129,6 +136,7 @@ MonoBehaviour:
     bonusDamage: 0
   - stageName: Normal
     stageType: 0
+    difficulty: 1
     maxDeckSize: 9
     maxAttackers: 3
     maxDefenders: 3
@@ -144,6 +152,7 @@ MonoBehaviour:
     bonusDamage: 0
   - stageName: Normal(Challenge)
     stageType: 1
+    difficulty: 1
     maxDeckSize: 9
     maxAttackers: 3
     maxDefenders: 3
@@ -159,6 +168,7 @@ MonoBehaviour:
     bonusDamage: 1
   - stageName: Hard
     stageType: 0
+    difficulty: 2
     maxDeckSize: 11
     maxAttackers: 4
     maxDefenders: 4
@@ -174,6 +184,7 @@ MonoBehaviour:
     bonusDamage: 0
   - stageName: Hard(Challenge)
     stageType: 1
+    difficulty: 2
     maxDeckSize: 11
     maxAttackers: 4
     maxDefenders: 4

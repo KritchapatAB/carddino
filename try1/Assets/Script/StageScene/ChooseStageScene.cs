@@ -186,17 +186,64 @@ public class ChooseStageScene : MonoBehaviour
         stageSelectionPopup.GenerateStageChoices(selectedStages);
     }
 
-    private List<StageConfiguration> GetValidStages(int currentStage)
-    {
-        var allStages = GameManager.Instance.stageDatabase?.stageConfigs;
-        if (allStages == null) return new();
+    // private List<StageConfiguration> GetValidStages(int currentStage)
+    // {
+    //     var allStages = GameManager.Instance.stageDatabase?.stageConfigs;
+    //     if (allStages == null) return new();
 
-        return currentStage % 9 == 0
-            ? allStages.FindAll(stage => stage.stageType == StageType.Boss)
-            : allStages.FindAll(stage => currentStage % 4 == 0
-                ? stage.stageType == StageType.Normal || stage.stageType == StageType.Challenge
-                : stage.stageType != StageType.Boss);
+    //     return currentStage % 9 == 0
+    //         ? allStages.FindAll(stage => stage.stageType == StageType.Boss)
+    //         : allStages.FindAll(stage => currentStage % 4 == 0
+    //             ? stage.stageType == StageType.Normal || stage.stageType == StageType.Challenge
+    //             : stage.stageType != StageType.Boss);
+    // }
+
+private List<StageConfiguration> GetValidStages(int currentStage)
+{
+    var allStages = GameManager.Instance.stageDatabase?.stageConfigs;
+    if (allStages == null) return new();
+
+    List<StageConfiguration> validStages = new();
+
+    // ✅ Boss Fight (Every 9th stage) → Selects Boss Based on Difficulty
+    if (currentStage % 9 == 0)
+    {
+        return allStages.FindAll(stage => 
+            stage.stageType == StageType.Boss &&
+            ((currentStage == 9 && stage.difficulty == Difficulty.Easy) ||
+             (currentStage == 18 && stage.difficulty == Difficulty.Normal) ||
+             (currentStage == 27 && stage.difficulty == Difficulty.Hard)));
     }
+
+    // ✅ Force Combat Every 4th Stage (Scales by Difficulty)
+    if (currentStage % 4 == 0)
+    {
+        return allStages.FindAll(stage => 
+            (stage.stageType == StageType.Normal || stage.stageType == StageType.Challenge) &&
+            ((currentStage <= 8 && stage.difficulty == Difficulty.Easy) ||
+             (currentStage <= 17 && stage.difficulty == Difficulty.Normal) ||
+             (currentStage <= 26 && stage.difficulty == Difficulty.Hard)));
+    }
+
+    // ✅ Difficulty Scaling for Regular Stages
+    if (currentStage <= 8) // Stages 1-8 → Easy
+        validStages = allStages.FindAll(stage => stage.difficulty == Difficulty.Easy);
+    else if (currentStage <= 17) // Stages 10-17 → Normal
+        validStages = allStages.FindAll(stage => stage.difficulty == Difficulty.Normal);
+    else if (currentStage <= 26) // Stages 19-26 → Hard
+        validStages = allStages.FindAll(stage => stage.difficulty == Difficulty.Hard);
+
+    // ✅ Add Shop & ChooseCard (Duplicates Allowed)
+    StageConfiguration shopStage = allStages.Find(stage => stage.stageType == StageType.Shop);
+    StageConfiguration chooseCardStage = allStages.Find(stage => stage.stageType == StageType.ChooseCard);
+
+    if (shopStage != null) validStages.Add(shopStage);
+    if (chooseCardStage != null) validStages.Add(chooseCardStage);
+
+    return validStages; // ✅ Returns all possible stages (including duplicates)
+}
+
+
 
     public void ReturnMainMenu()
     {
