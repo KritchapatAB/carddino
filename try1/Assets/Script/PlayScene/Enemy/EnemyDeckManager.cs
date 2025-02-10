@@ -51,8 +51,8 @@ public class EnemyDeckManager : MonoBehaviour
     {
         foreach (var card in enemyDeck)
         {
-            card.health += 2;  // 🔹 Challenge bonus: +2 Health
-            card.damage += 1;  // 🔹 Challenge bonus: +1 Damage
+            card.health += 2;  // Challenge bonus: +2 Health
+            card.damage += 1;  // Challenge bonus: +1 Damage
         }
 
         Debug.Log($"Applied Challenge modifiers: +2 Health, +1 Damage.");
@@ -98,7 +98,6 @@ public class EnemyDeckManager : MonoBehaviour
         }
     }
 
-
     private void TrimDeckToMaxSize(int maxSize)
     {
         if (enemyDeck.Count > maxSize)
@@ -106,17 +105,6 @@ public class EnemyDeckManager : MonoBehaviour
             enemyDeck.RemoveRange(maxSize, enemyDeck.Count - maxSize);
             Debug.Log($"Trimmed enemy deck to max size: {maxSize}.");
         }
-    }
-
-    public Card PeekNextCard()
-    {
-        if (enemyDeck.Count == 0)
-        {
-            Debug.LogWarning("Enemy deck is empty! Cannot peek any cards.");
-            return null;
-        }
-
-        return enemyDeck[0];
     }
 
     public Card TakeNextCard()
@@ -136,4 +124,23 @@ public class EnemyDeckManager : MonoBehaviour
     {
         return enemyDeck.Count == 0;
     }
+
+public void ReturnHandToDeck(List<Card> enemyHand)
+{
+    if (enemyHand.Count == 0)
+    {
+        Debug.Log("No cards to return to enemy deck.");
+        return;
+    }
+
+    foreach (var card in enemyHand)
+    {
+        enemyDeck.Add(card);
+    }
+
+    enemyHand.Clear(); // ✅ Empty the enemy's hand
+
+    Debug.Log($"Returned {enemyDeck.Count} cards back to the enemy deck.");
+}
+
 }

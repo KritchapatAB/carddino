@@ -7,7 +7,9 @@ public class TurnManager : MonoBehaviour
     public TurnState currentTurn = TurnState.EnemyTurn;
 
     private BoardManager boardManager;
+    private EnemyManager enemyManager;  // ✅ NEW: Reference EnemyManager
     private PlayerHand playerHand;
+
 
     public float enemyTurnDelay = 2.0f;
     private bool hasDrawnCardThisTurn = false;
@@ -15,7 +17,13 @@ public class TurnManager : MonoBehaviour
     void Start()
     {
         boardManager = FindObjectOfType<BoardManager>();
+        enemyManager = FindObjectOfType<EnemyManager>();  // ✅ Assign EnemyManager
         playerHand = FindObjectOfType<PlayerHand>();
+
+        if (enemyManager == null)
+        {
+            Debug.LogError("EnemyManager not found in scene!");
+        }
 
         if (currentTurn == TurnState.EnemyTurn)
         {
@@ -31,6 +39,7 @@ public class TurnManager : MonoBehaviour
     {
         currentTurn = TurnState.PlayerTurn;
         Debug.Log("Player's turn starts.");
+        boardManager.MoveEnemyCardsToActiveArea();
         hasDrawnCardThisTurn = false;
 
         boardManager.EnablePlayerControls();
@@ -54,15 +63,26 @@ public class TurnManager : MonoBehaviour
         Debug.Log("Enemy's turn starts.");
         yield return new WaitForSeconds(enemyTurnDelay);
 
-        boardManager.HandleEnemyTurn();
+        if (enemyManager != null)
+        {
+            enemyManager.StartTurn();  // ✅ This actually makes the enemy AI move
+        }
+        else
+        {
+            Debug.LogError("EnemyManager reference is missing!");
+        }
 
         yield return new WaitForSeconds(enemyTurnDelay);
         EndEnemyTurn();
     }
 
-    public void EndEnemyTurn()
+   public void EndEnemyTurn()
     {
         Debug.Log("Enemy's turn ends.");
+
+        boardManager.MoveEnemyCardsToActiveArea(); // ✅ Ensure this runs here
+
+        boardManager.enemyManager.ReturnHandToDeck();
         StartPlayerTurn();
     }
 

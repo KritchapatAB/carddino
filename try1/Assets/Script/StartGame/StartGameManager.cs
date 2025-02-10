@@ -70,7 +70,10 @@ public class StartGameManager : MonoBehaviour,ICardSelectionHandler
         // ✅ Ensure GameManager exists before calling LastStageChoicesClear
         if (GameManager.Instance != null)
         {
+            GameManager.Instance.ClearMoney();
             GameManager.Instance.LastStageChoicesClear();
+            GameManager.Instance.ResetCurrentStage();
+            GameManager.Instance.AddMoney(3);
         }
         else
         {
@@ -152,4 +155,3 @@ public class StartGameManager : MonoBehaviour,ICardSelectionHandler
     }
 
 }
-

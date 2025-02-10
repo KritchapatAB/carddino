@@ -1325,7 +1325,6 @@ MonoBehaviour:
   coinUIText: {fileID: 1478020965}
   currentStageText: {fileID: 437156249}
   stageSelectionPopup: {fileID: 2073745091}
-  stageDatabase: {fileID: 11400000, guid: 64364b5efedd0b449acee0c13aae6235, type: 2}
 --- !u!4 &1181370897
 Transform:
   m_ObjectHideFlags: 0
@@ -2645,37 +2644,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!1 &1867734645
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1867734647}
-  m_Layer: 0
-  m_Name: StageSystem
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1867734647
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1867734645}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1915004029
 GameObject:
   m_ObjectHideFlags: 0
@@ -2960,7 +2928,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1181370896}
         m_TargetAssemblyTypeName: ChooseStageScene, Assembly-CSharp
-        m_MethodName: OpenShop
+        m_MethodName: StageOverride
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3068,4 +3036,3 @@ SceneRoots:
   - {fileID: 1113261132}
   - {fileID: 1181370897}
   - {fileID: 516182490}
-  - {fileID: 1867734647}

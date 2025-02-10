@@ -161,42 +161,33 @@ public class ChooseStageScene : MonoBehaviour
             GenerateStageOptions();
     }
 
-    private void GenerateStageOptions()
+private void GenerateStageOptions()
+{
+    int currentStage = GameManager.Instance.CurrentSaveData.currentStage;
+    List<StageConfiguration> possibleStages = GetValidStages(currentStage);
+    List<StageConfiguration> selectedStages = new();
+
+    if (currentStage % 9 == 0) // ✅ Boss Fight (One Choice Only)
     {
-        int currentStage = GameManager.Instance.CurrentSaveData.currentStage;
-        List<StageConfiguration> possibleStages = GetValidStages(currentStage);
-        List<StageConfiguration> selectedStages = new();
-
-        if (currentStage % 9 == 0)
-            selectedStages.Add(possibleStages.Find(stage => stage.stageType == StageType.Boss));
-        else
+        StageConfiguration bossStage = possibleStages.Find(stage => stage.stageType == StageType.Boss);
+        if (bossStage != null) selectedStages.Add(bossStage);
+    }
+    else
+    {
+        possibleStages.RemoveAll(stage => stage.stageType == StageType.Boss); // Ensure Boss doesn't appear outside 9th stage
+        
+        while (selectedStages.Count < 3 && possibleStages.Count > 0)
         {
-            possibleStages.RemoveAll(stage => stage.stageType == StageType.Boss);
-            while (selectedStages.Count < 3 && possibleStages.Count > 0)
-            {
-                int randomIndex = Random.Range(0, possibleStages.Count);
-                if (!selectedStages.Contains(possibleStages[randomIndex]))
-                    selectedStages.Add(possibleStages[randomIndex]);
-                possibleStages.RemoveAt(randomIndex);
-            }
+            int randomIndex = Random.Range(0, possibleStages.Count);
+            selectedStages.Add(possibleStages[randomIndex]); // ✅ Allows duplicate stages
         }
-
-        GameManager.Instance.SetLastStageChoices(selectedStages);
-        GameManager.Instance.SaveData();
-        stageSelectionPopup.GenerateStageChoices(selectedStages);
     }
 
-    // private List<StageConfiguration> GetValidStages(int currentStage)
-    // {
-    //     var allStages = GameManager.Instance.stageDatabase?.stageConfigs;
-    //     if (allStages == null) return new();
+    GameManager.Instance.SetLastStageChoices(selectedStages);
+    GameManager.Instance.SaveData();
+    stageSelectionPopup.GenerateStageChoices(selectedStages);
+}
 
-    //     return currentStage % 9 == 0
-    //         ? allStages.FindAll(stage => stage.stageType == StageType.Boss)
-    //         : allStages.FindAll(stage => currentStage % 4 == 0
-    //             ? stage.stageType == StageType.Normal || stage.stageType == StageType.Challenge
-    //             : stage.stageType != StageType.Boss);
-    // }
 
 private List<StageConfiguration> GetValidStages(int currentStage)
 {
@@ -205,7 +196,7 @@ private List<StageConfiguration> GetValidStages(int currentStage)
 
     List<StageConfiguration> validStages = new();
 
-    // ✅ Boss Fight (Every 9th stage) → Selects Boss Based on Difficulty
+    // ✅ Boss Fight (Every 9th Stage) → Selects One Boss Based on Difficulty
     if (currentStage % 9 == 0)
     {
         return allStages.FindAll(stage => 
@@ -215,39 +206,50 @@ private List<StageConfiguration> GetValidStages(int currentStage)
              (currentStage == 27 && stage.difficulty == Difficulty.Hard)));
     }
 
-    // ✅ Force Combat Every 4th Stage (Scales by Difficulty)
-    if (currentStage % 4 == 0)
-    {
-        return allStages.FindAll(stage => 
-            (stage.stageType == StageType.Normal || stage.stageType == StageType.Challenge) &&
-            ((currentStage <= 8 && stage.difficulty == Difficulty.Easy) ||
-             (currentStage <= 17 && stage.difficulty == Difficulty.Normal) ||
-             (currentStage <= 26 && stage.difficulty == Difficulty.Hard)));
-    }
-
-    // ✅ Difficulty Scaling for Regular Stages
-    if (currentStage <= 8) // Stages 1-8 → Easy
+    // ✅ First, filter all stages based on difficulty
+    if (currentStage <= 9) 
         validStages = allStages.FindAll(stage => stage.difficulty == Difficulty.Easy);
-    else if (currentStage <= 17) // Stages 10-17 → Normal
+    else if (currentStage <= 18) 
         validStages = allStages.FindAll(stage => stage.difficulty == Difficulty.Normal);
-    else if (currentStage <= 26) // Stages 19-26 → Hard
+    else if (currentStage <= 27) 
         validStages = allStages.FindAll(stage => stage.difficulty == Difficulty.Hard);
 
-    // ✅ Add Shop & ChooseCard (Duplicates Allowed)
-    StageConfiguration shopStage = allStages.Find(stage => stage.stageType == StageType.Shop);
-    StageConfiguration chooseCardStage = allStages.Find(stage => stage.stageType == StageType.ChooseCard);
+    // ✅ If it's a multiple of 4, force Normal/Challenge from the filtered stages
+    if (currentStage % 4 == 0)
+    {
+        return validStages.FindAll(stage => stage.stageType == StageType.Normal || stage.stageType == StageType.Challenge);
+    }
 
-    if (shopStage != null) validStages.Add(shopStage);
-    if (chooseCardStage != null) validStages.Add(chooseCardStage);
+    // ✅ Add Shop & ChooseCard randomly (based on number of stages in difficulty)
+    int stageCount = validStages.Count;
+    if (stageCount > 0)
+    {
+        float chance = 1f / stageCount; // Dynamic probability based on available stages
+        if (Random.value < chance)
+        {
+            StageConfiguration shopStage = allStages.Find(stage => stage.stageType == StageType.Shop);
+            if (shopStage != null) validStages.Add(shopStage);
+        }
 
-    return validStages; // ✅ Returns all possible stages (including duplicates)
+        if (Random.value < chance)
+        {
+            StageConfiguration chooseCardStage = allStages.Find(stage => stage.stageType == StageType.ChooseCard);
+            if (chooseCardStage != null) validStages.Add(chooseCardStage);
+        }
+    }
+
+    return validStages;
 }
-
-
 
     public void ReturnMainMenu()
     {
         GameManager.Instance.SaveData();
         SceneManager.LoadScene("MainMenu");
     }
+
+    public void StageOverride()
+    {
+        SceneManager.LoadScene("ShopStage");
+    }
 }
+

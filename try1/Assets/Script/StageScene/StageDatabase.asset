@@ -198,3 +198,67 @@ MonoBehaviour:
     specificCards: []
     bonusHealth: 2
     bonusDamage: 1
+  - stageName: Shop
+    stageType: 3
+    difficulty: 1
+    maxDeckSize: 0
+    maxAttackers: 0
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 0
+    maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0
+  - stageName: Shop
+    stageType: 3
+    difficulty: 2
+    maxDeckSize: 0
+    maxAttackers: 0
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 0
+    maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0
+  - stageName: ChooseCard
+    stageType: 4
+    difficulty: 1
+    maxDeckSize: 0
+    maxAttackers: 0
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 0
+    maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0
+  - stageName: ChooseCard
+    stageType: 4
+    difficulty: 2
+    maxDeckSize: 0
+    maxAttackers: 0
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 0
+    maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0

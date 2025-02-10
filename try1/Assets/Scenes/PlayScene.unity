@@ -1533,11 +1533,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a83da6271aea3b42a9e9a5b90946c14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Stages:
-  - {fileID: 11400000, guid: 18576e2642656354c90425ab70801fb6, type: 2}
-  - {fileID: 11400000, guid: deabecd9370df1e40a8b1766a1a90c2d, type: 2}
-  - {fileID: 11400000, guid: a50f27a497368624d8ba6f4a6505d64b, type: 2}
-  CurrentStageIndex: 1
 --- !u!4 &813473004
 Transform:
   m_ObjectHideFlags: 0
@@ -2867,6 +2862,56 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1418723452
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1418723454}
+  - component: {fileID: 1418723453}
+  m_Layer: 0
+  m_Name: EnemyManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1418723453
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1418723452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d85d5ed32b4f25c4396d5b675e7ea7d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemyDeckManager: {fileID: 1289307153}
+  boardManager: {fileID: 1979033717}
+  maxCardsPerTurn: 3
+  enemyHand: []
+  cardDatabase: {fileID: 477211103}
+  enemyCardPrefab: {fileID: 5035424088301282722, guid: 117e9ead2bb41af4f88fbbacc74778bc, type: 3}
+--- !u!4 &1418723454
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1418723452}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.4425345, y: 0.36614388, z: 3.9095585}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1473011772
 GameObject:
   m_ObjectHideFlags: 0
@@ -4108,8 +4153,13 @@ MonoBehaviour:
   sacrificeProgressText: {fileID: 982899343}
   engagePlayerDeck: []
   playerDeckManager: {fileID: 2229664038875156342}
-  enemySlots: []
   enemyDeckManager: {fileID: 1289307153}
+  enemyManager: {fileID: 1418723453}
+  cardDatabase: {fileID: 477211103}
+  EnemyCardSlot: {fileID: 0}
+  enemyCardPrefab: {fileID: 5035424088301282722, guid: 117e9ead2bb41af4f88fbbacc74778bc, type: 3}
+  enemyReserveSlots: []
+  enemyActiveSlots: []
 --- !u!1 &1985430365
 GameObject:
   m_ObjectHideFlags: 0
@@ -4722,3 +4772,4 @@ SceneRoots:
   - {fileID: 1289307152}
   - {fileID: 813473004}
   - {fileID: 1509834980}
+  - {fileID: 1418723454}
