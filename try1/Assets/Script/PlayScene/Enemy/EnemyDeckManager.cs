@@ -3,14 +3,17 @@ using UnityEngine;
 
 public class EnemyDeckManager : MonoBehaviour
 {
-    public CardDatabase cardDatabase;  // Reference to the CardDatabase
-
-    [SerializeField]
-    private List<Card> enemyDeck = new();
+    public CardDatabase cardDatabase;
+    [SerializeField] private List<Card> enemyDeck = new();
+    
+    private Dictionary<int, List<Card>> bossAndSpecificCardSchedule = new(); // Turn-based lookup
+    public bool hasBossOrSpecificCard { get; private set; } = false; // Flag for EnemyManager
 
     public void InitializeEnemyDeck(StageConfiguration stageConfig)
     {
         enemyDeck.Clear();
+        bossAndSpecificCardSchedule.Clear();
+        hasBossOrSpecificCard = false;
 
         if (stageConfig == null)
         {
@@ -26,40 +29,25 @@ public class EnemyDeckManager : MonoBehaviour
 
         Debug.Log($"Initializing deck for stage: {stageConfig.stageName}");
 
-        // Add specific cards by ID
-        AddSpecificCards(stageConfig.specificCards);
+        // Add specific cards and prepare schedule
+        ProcessSpecificCards(stageConfig.specificCards);
 
         // Add random cards based on type and cost
         FillDeckWithRandomCards("Attacker", stageConfig.maxAttackers, stageConfig.minAttackerCost, stageConfig.maxAttackerCost);
         FillDeckWithRandomCards("Defender", stageConfig.maxDefenders, stageConfig.minDefenderCost, stageConfig.maxDefenderCost);
         FillDeckWithRandomCards("Normal", stageConfig.maxNormals, stageConfig.minNormalCost, stageConfig.maxNormalCost);
 
-        // 🔥 Apply Challenge Modifiers (Boss fights DO NOT use these)
+        // Apply Challenge Modifiers (Boss fights do NOT use these)
         if (stageConfig.stageType == StageType.Challenge)
         {
             ApplyChallengeModifiers();
         }
 
-        // Trim deck to max size
         TrimDeckToMaxSize(stageConfig.maxDeckSize);
-
         Debug.Log($"Enemy deck initialized with {enemyDeck.Count} cards.");
     }
 
-    // 🔥 Apply Challenge Modifiers (+2 Health, +1 Damage)
-    private void ApplyChallengeModifiers()
-    {
-        foreach (var card in enemyDeck)
-        {
-            card.health += 2;  // Challenge bonus: +2 Health
-            card.damage += 1;  // Challenge bonus: +1 Damage
-        }
-
-        Debug.Log($"Applied Challenge modifiers: +2 Health, +1 Damage.");
-    }
-
-
-    private void AddSpecificCards(List<SpecificCardEntry> specificCards)
+    private void ProcessSpecificCards(List<SpecificCardEntry> specificCards)
     {
         foreach (var entry in specificCards)
         {
@@ -70,31 +58,47 @@ public class EnemyDeckManager : MonoBehaviour
                 continue;
             }
 
+            if (!bossAndSpecificCardSchedule.ContainsKey(entry.turn))
+            {
+                bossAndSpecificCardSchedule[entry.turn] = new List<Card>();
+            }
+
             for (int i = 0; i < entry.quantity; i++)
             {
-                enemyDeck.Add(card);
-                Debug.Log($"Added card {card.cardName} (ID: {card.id}) to enemy deck.");
+                bossAndSpecificCardSchedule[entry.turn].Add(card);
+                hasBossOrSpecificCard = true; // ✅ Now we know to check turns in EnemyManager
             }
+
+            Debug.Log($"Scheduled {entry.quantity}x {card.cardName} (ID: {card.id}) for Turn {entry.turn}");
         }
     }
 
-    // Add random cards of a specific type and cost to the deck
+    public List<Card> GetCardsForTurn(int turn)
+    {
+        return bossAndSpecificCardSchedule.ContainsKey(turn) ? bossAndSpecificCardSchedule[turn] : new List<Card>();
+    }
+
+    private void ApplyChallengeModifiers()
+    {
+        for (int i = 0; i < enemyDeck.Count; i++)
+        {
+            Card modifiedCard = new Card(enemyDeck[i]); // Avoid modifying original database card
+            modifiedCard.health += 2;
+            modifiedCard.damage += 1;
+            enemyDeck[i] = modifiedCard;
+        }
+        Debug.Log("Applied Challenge modifiers: +2 Health, +1 Damage.");
+    }
+
     private void FillDeckWithRandomCards(string cardType, int maxCount, int minCost, int maxCost)
     {
-        // Filter cards by type, cost, and CardID range
         List<Card> filteredCards = cardDatabase.cards.FindAll(
-            card => card.dinoType == cardType &&
-                    card.cost >= minCost &&
-                    card.cost <= maxCost &&
-                    card.id >= 0 && card.id <= 19); // Ensure CardID is between 0 and 19
+            card => card.dinoType == cardType && card.cost >= minCost && card.cost <= maxCost
+        );
 
-        int cardsToAdd = maxCount;
-
-        while (cardsToAdd > 0 && filteredCards.Count > 0)
+        for (int i = 0; i < maxCount && filteredCards.Count > 0; i++)
         {
-            int randomIndex = Random.Range(0, filteredCards.Count);
-            enemyDeck.Add(filteredCards[randomIndex]);
-            cardsToAdd--;
+            enemyDeck.Add(filteredCards[Random.Range(0, filteredCards.Count)]);
         }
     }
 
@@ -103,21 +107,24 @@ public class EnemyDeckManager : MonoBehaviour
         if (enemyDeck.Count > maxSize)
         {
             enemyDeck.RemoveRange(maxSize, enemyDeck.Count - maxSize);
-            Debug.Log($"Trimmed enemy deck to max size: {maxSize}.");
         }
     }
 
     public Card TakeNextCard()
     {
-        if (enemyDeck.Count == 0)
-        {
-            Debug.LogWarning("Enemy deck is empty! Cannot take any cards.");
-            return null;
-        }
-
+        if (enemyDeck.Count == 0) return null;
         Card nextCard = enemyDeck[0];
         enemyDeck.RemoveAt(0);
         return nextCard;
+    }
+
+    public void ShuffleDeck()
+    {
+        for (int i = enemyDeck.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (enemyDeck[i], enemyDeck[j]) = (enemyDeck[j], enemyDeck[i]);
+        }
     }
 
     public bool IsDeckEmpty()
@@ -125,22 +132,21 @@ public class EnemyDeckManager : MonoBehaviour
         return enemyDeck.Count == 0;
     }
 
-public void ReturnHandToDeck(List<Card> enemyHand)
-{
-    if (enemyHand.Count == 0)
+    public void ReturnHandToDeck(List<Card> enemyHand)
     {
-        Debug.Log("No cards to return to enemy deck.");
-        return;
+        if (enemyHand.Count == 0)
+        {
+            Debug.Log("No cards to return to enemy deck.");
+            return;
+        }
+
+        foreach (var card in enemyHand)
+        {
+            enemyDeck.Add(card);
+        }
+
+        enemyHand.Clear(); // ✅ Empty the enemy's hand
+
+        Debug.Log($"Returned {enemyDeck.Count} cards back to the enemy deck.");
     }
-
-    foreach (var card in enemyHand)
-    {
-        enemyDeck.Add(card);
-    }
-
-    enemyHand.Clear(); // ✅ Empty the enemy's hand
-
-    Debug.Log($"Returned {enemyDeck.Count} cards back to the enemy deck.");
-}
-
 }

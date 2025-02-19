@@ -96,3 +96,4 @@ public class ChooseCardStageManager : MonoBehaviour, ICardSelectionHandler
         SceneManager.LoadScene("DeleteCard");
     }
 }
+// fix delete back to choosecard are card change

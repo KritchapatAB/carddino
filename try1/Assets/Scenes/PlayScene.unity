@@ -2893,7 +2893,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyDeckManager: {fileID: 1289307153}
   boardManager: {fileID: 1979033717}
-  maxCardsPerTurn: 3
+  maxCardsPerTurn: 2
   enemyHand: []
   cardDatabase: {fileID: 477211103}
   enemyCardPrefab: {fileID: 5035424088301282722, guid: 117e9ead2bb41af4f88fbbacc74778bc, type: 3}

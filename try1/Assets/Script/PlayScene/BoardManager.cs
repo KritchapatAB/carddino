@@ -82,9 +82,9 @@ public class BoardManager : MonoBehaviour
                 Debug.LogWarning($"Card with ID {cardId} not found in CardDatabase!");
             }
         }
-
-        Debug.Log($"Engage deck prepared with {engagePlayerDeck.Count} cards.");
+        ShuffleList(engagePlayerDeck);
     }
+
 //endregion
 
 //region DrawCard
@@ -139,6 +139,15 @@ public class BoardManager : MonoBehaviour
 
         OnDeckChanged?.Invoke();
         return drawnCard;
+    }
+
+    private void ShuffleList<T>(List<T> list)
+    {
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            (list[i], list[j]) = (list[j], list[i]); // Swap elements
+        }
     }
 //endregion
 
@@ -349,64 +358,61 @@ public class BoardManager : MonoBehaviour
         // Disable UI interactions and reset any highlights
     }
 
-    public bool PlayerFieldHasAttackers()
+//EnemyAI
+
+public void GetStrongestPlayerCards(out Card strongestAttacker, out Card strongestDefender)
 {
+    strongestAttacker = null;
+    strongestDefender = null;
+    int highestAttackDamage = -1;
+    int highestDefenderHealth = -1;
+
     foreach (var slot in playerSlots)
     {
         var cardSlot = slot.GetComponent<CardSlot>();
         if (cardSlot != null && cardSlot.IsOccupied())
         {
-            var placedCard = EnemyCardSlot.GetPlacedCard();
-            if (placedCard != null)
+            // ✅ Loop through children to find the actual card
+            CardViz placedCard = null;
+            foreach (Transform child in slot.transform)
             {
-                var cardViz = placedCard.GetComponent<CardViz>();
-                if (cardViz != null)
+                placedCard = child.GetComponent<CardViz>();
+                if (placedCard != null) break; // Found the card, exit loop
+            }
+
+            if (placedCard == null)
+            {
+                Debug.LogWarning($"⚠️ No CardViz found in occupied slot: {slot.name}");
+                continue; // Skip this slot
+            }
+
+            var card = placedCard.GetCardData();
+            if (card != null)
+            {
+                if (card.dinoType == "Attacker" && card.damage > highestAttackDamage)
                 {
-                    var card = cardViz.GetCardData();
-                    if (card != null && card.dinoType == "Attacker")
-                    {
-                        return true;
-                    }
+                    highestAttackDamage = card.damage;
+                    strongestAttacker = card;
+                }
+                if (card.dinoType == "Defender" && card.health > highestDefenderHealth)
+                {
+                    highestDefenderHealth = card.health;
+                    strongestDefender = card;
                 }
             }
         }
     }
-    return false;
+    
+    Debug.Log($"✅ Strongest Attacker: {strongestAttacker?.cardName ?? "None"}");
+    Debug.Log($"✅ Strongest Defender: {strongestDefender?.cardName ?? "None"}");
 }
-
-
-public bool PlayerFieldHasDefenders()
-{
-    foreach (var slot in playerSlots)
-    {
-        var cardSlot = slot.GetComponent<CardSlot>();
-        if (cardSlot != null && cardSlot.IsOccupied())
-        {
-            var placedCard = EnemyCardSlot.GetPlacedCard();
-            if (placedCard != null)
-            {
-                var cardViz = placedCard.GetComponent<CardViz>();
-                if (cardViz != null)
-                {
-                    var card = cardViz.GetCardData();
-                    if (card != null && card.dinoType == "Defender")
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
-}
-
 
 public void MoveEnemyCardsToActiveArea()
 {
     List<EnemyCardSlot> reserveSlots = new();
     List<EnemyCardSlot> activeSlots = new();
 
-    // 🔹 Get all slots in EnemyReserveArea & EnemyActiveArea
+    // ✅ Find all slots in Reserve and Active areas
     foreach (Transform child in GameObject.Find("EnemyReserveArea").transform)
     {
         var slot = child.GetComponent<EnemyCardSlot>();
@@ -419,63 +425,67 @@ public void MoveEnemyCardsToActiveArea()
         if (slot != null) activeSlots.Add(slot);
     }
 
-    // 🔹 Move cards ONLY IF Active Area has empty slots
-    for (int i = 0; i < activeSlots.Count; i++)
+    // ✅ Move cards correctly
+    int minSlots = Mathf.Min(reserveSlots.Count, activeSlots.Count); // Make sure we don’t go out of bounds
+
+    for (int i = 0; i < minSlots; i++) 
     {
-        if (!activeSlots[i].IsOccupied() && i < reserveSlots.Count)
+        if (!activeSlots[i].IsOccupied()) 
         {
             GameObject cardToMove = reserveSlots[i].GetPlacedCard();
+
+            Debug.Log($"[MoveEnemyCardsToActiveArea] Moving {cardToMove?.name ?? "null"} from {reserveSlots[i].name} to {activeSlots[i].name}");
+
             if (cardToMove != null)
             {
-                reserveSlots[i].ClearSlot();
+                // ✅ Step 1: Move the card to the new slot
                 activeSlots[i].PlaceCard(cardToMove);
-
-                // ✅ Move UI and position correctly
                 cardToMove.transform.SetParent(activeSlots[i].transform, false);
-                cardToMove.transform.localPosition = Vector3.zero; // Reset position to fit new slot
+                cardToMove.transform.localPosition = Vector3.zero;
+
+                // ✅ Step 2: Only clear the old slot AFTER moving the card
+                reserveSlots[i].ClearSlot();
             }
         }
     }
 }
 
 
-private void FindEnemySlots()
-{
-    enemyReserveSlots.Clear();
-    enemyActiveSlots.Clear();
-
-    GameObject reserveArea = GameObject.Find("EnemyReserveArea");
-    GameObject activeArea = GameObject.Find("EnemyActiveArea");
-
-    if (reserveArea != null)
+    private void FindEnemySlots()
     {
-        foreach (Transform child in reserveArea.transform)
+        enemyReserveSlots.Clear();
+        enemyActiveSlots.Clear();
+
+        GameObject reserveArea = GameObject.Find("EnemyReserveArea");
+        GameObject activeArea = GameObject.Find("EnemyActiveArea");
+
+        if (reserveArea != null)
         {
-            var slot = child.GetComponent<EnemyCardSlot>();
-            if (slot != null) enemyReserveSlots.Add(slot.gameObject);
+            foreach (Transform child in reserveArea.transform)
+            {
+                var slot = child.GetComponent<EnemyCardSlot>();
+                if (slot != null) enemyReserveSlots.Add(slot.gameObject);
+            }
         }
-    }
-    else
-    {
-        Debug.LogError("EnemyReserveArea not found in scene!");
-    }
-
-    if (activeArea != null)
-    {
-        foreach (Transform child in activeArea.transform)
+        else
         {
-            var slot = child.GetComponent<EnemyCardSlot>();
-            if (slot != null) enemyActiveSlots.Add(slot.gameObject);
+            Debug.LogError("EnemyReserveArea not found in scene!");
         }
+
+        if (activeArea != null)
+        {
+            foreach (Transform child in activeArea.transform)
+            {
+                var slot = child.GetComponent<EnemyCardSlot>();
+                if (slot != null) enemyActiveSlots.Add(slot.gameObject);
+            }
+        }
+        else
+        {
+            Debug.LogError("EnemyActiveArea not found in scene!");
+        }
+
+        Debug.Log($"[BoardManager] Found {enemyReserveSlots.Count} reserve slots & {enemyActiveSlots.Count} active slots.");
     }
-    else
-    {
-        Debug.LogError("EnemyActiveArea not found in scene!");
-    }
-
-    Debug.Log($"[BoardManager] Found {enemyReserveSlots.Count} reserve slots & {enemyActiveSlots.Count} active slots.");
-}
-
-
 
 }

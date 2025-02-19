@@ -91,15 +91,15 @@ MonoBehaviour:
     maxDefenders: 1
     maxNormals: 0
     minAttackerCost: 3
-    maxAttackerCost: 4
+    maxAttackerCost: 3
     minDefenderCost: 3
-    maxDefenderCost: 4
+    maxDefenderCost: 3
     minNormalCost: 0
     maxNormalCost: 0
     specificCards:
     - cardId: 20
       quantity: 1
-      turn: 3
+      turn: 2
     bonusHealth: 0
     bonusDamage: 0
   - stageName: ChooseCard
@@ -255,6 +255,22 @@ MonoBehaviour:
     maxNormals: 0
     minAttackerCost: 0
     maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0
+  - stageName: Temu
+    stageType: 0
+    difficulty: 2
+    maxDeckSize: 10
+    maxAttackers: 10
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 4
+    maxAttackerCost: 4
     minDefenderCost: 0
     maxDefenderCost: 0
     minNormalCost: 0

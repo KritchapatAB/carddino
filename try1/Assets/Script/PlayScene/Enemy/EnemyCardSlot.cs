@@ -13,39 +13,58 @@ public class EnemyCardSlot : MonoBehaviour
     }
 
     public void PlaceCard(GameObject card)
+{
+    if (isOccupied)
     {
-        if (isOccupied) return;
-
-        placedCard = card;
-        isOccupied = true;  // ✅ This must be set!
-        placedCard.transform.SetParent(transform, false);
+        Debug.LogError($"⚠️ [EnemyCardSlot] Tried to place {card?.name ?? "null"} in {gameObject.name}, but it's already occupied!");
+        return;
     }
 
+    placedCard = card;
+    isOccupied = true;
+
+    placedCard.transform.SetParent(transform, false);
+    placedCard.transform.localPosition = Vector3.zero;
+
+    Debug.Log($"✅ [EnemyCardSlot] Placed {placedCard.name} in {gameObject.name}");
+}
 
     // 🔹 Moves the card from Reserve Area to Active Area
-    public void MoveToActiveField(Transform activeSlot)
+    public void MoveToActiveField(EnemyCardSlot activeSlot)
     {
         if (!isOccupied || placedCard == null) return;
 
-        placedCard.transform.SetParent(activeSlot, false); // Move card
-        isOccupied = false; // Free up the reserve slot
+        activeSlot.PlaceCard(placedCard); // ✅ Update target slot’s reference
+        placedCard.transform.SetParent(activeSlot.transform, false);
+        placedCard.transform.localPosition = Vector3.zero;
+
+        placedCard = null; // ✅ Remove reference from old slot
+        isOccupied = false;
     }
 
     public GameObject GetPlacedCard()
+{
+    if (placedCard == null)
     {
-        Debug.Log($"[EnemyCardSlot] Returning {placedCard?.name ?? "null"} from GetPlacedCard()");
-        return placedCard;
+        Debug.LogError($"❌ [EnemyCardSlot] GetPlacedCard() called but no card is placed in {gameObject.name}!");
+    }
+    else
+    {
+        Debug.Log($"✅ [EnemyCardSlot] Returning card: {placedCard.name} from {gameObject.name}");
     }
 
+    return placedCard;
+}
 
-    public void ClearSlot()
-    {
-        if (placedCard != null)
-        {
-            Destroy(placedCard); // Remove the card object
-            placedCard = null;
-        }
-        isOccupied = false;
-    }
+
+
+   public void ClearSlot()
+{
+    Debug.Log($"[ClearSlot] Releasing {gameObject.name}, but keeping {placedCard?.name ?? "null"}");
+
+    // ✅ DO NOT Destroy the card—just remove the reference from this slot
+    placedCard = null;
+    isOccupied = false;
+}
 
 }

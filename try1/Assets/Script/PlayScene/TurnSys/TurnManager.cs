@@ -7,22 +7,26 @@ public class TurnManager : MonoBehaviour
     public TurnState currentTurn = TurnState.EnemyTurn;
 
     private BoardManager boardManager;
-    private EnemyManager enemyManager;  // ✅ NEW: Reference EnemyManager
+    private EnemyManager enemyManager;
     private PlayerHand playerHand;
 
-
+    private int turnCounter = 0; // ✅ Ensure turnCounter is initialized
     public float enemyTurnDelay = 2.0f;
     private bool hasDrawnCardThisTurn = false;
 
     void Start()
     {
         boardManager = FindObjectOfType<BoardManager>();
-        enemyManager = FindObjectOfType<EnemyManager>();  // ✅ Assign EnemyManager
+        enemyManager = FindObjectOfType<EnemyManager>(); 
         playerHand = FindObjectOfType<PlayerHand>();
 
         if (enemyManager == null)
         {
             Debug.LogError("EnemyManager not found in scene!");
+        }
+        else
+        {
+            enemyManager.Initialize(); // ✅ Ensure EnemyManager is initialized
         }
 
         if (currentTurn == TurnState.EnemyTurn)
@@ -38,8 +42,7 @@ public class TurnManager : MonoBehaviour
     public void StartPlayerTurn()
     {
         currentTurn = TurnState.PlayerTurn;
-        Debug.Log("Player's turn starts.");
-        boardManager.MoveEnemyCardsToActiveArea();
+        Debug.Log($"Turn {turnCounter}: Player's turn starts.");
         hasDrawnCardThisTurn = false;
 
         boardManager.EnablePlayerControls();
@@ -49,23 +52,24 @@ public class TurnManager : MonoBehaviour
     public void EndPlayerTurn()
     {
         currentTurn = TurnState.EnemyTurn;
-        Debug.Log("Player's turn ends.");
+        Debug.Log($"Turn {turnCounter}: Player's turn ends.");
 
         boardManager.DisableSacrificePhase();
         boardManager.DisablePlayerControls();
         playerHand.TogglePlayerInteractions(false);
 
+        turnCounter++; 
         StartCoroutine(HandleEnemyTurn());
     }
 
     private IEnumerator HandleEnemyTurn()
     {
-        Debug.Log("Enemy's turn starts.");
+        Debug.Log($"Turn {turnCounter}: Enemy's turn starts.");
         yield return new WaitForSeconds(enemyTurnDelay);
 
         if (enemyManager != null)
         {
-            enemyManager.StartTurn();  // ✅ This actually makes the enemy AI move
+            enemyManager.StartTurn(turnCounter); // ✅ Pass turnCounter to fix error
         }
         else
         {
@@ -78,11 +82,12 @@ public class TurnManager : MonoBehaviour
 
    public void EndEnemyTurn()
     {
-        Debug.Log("Enemy's turn ends.");
+        Debug.Log($"Turn {turnCounter}: Enemy's turn ends.");
 
-        boardManager.MoveEnemyCardsToActiveArea(); // ✅ Ensure this runs here
-
+        boardManager.MoveEnemyCardsToActiveArea();
         boardManager.enemyManager.ReturnHandToDeck();
+
+        turnCounter++; // ✅ Increment turn count AFTER enemy's turn
         StartPlayerTurn();
     }
 
