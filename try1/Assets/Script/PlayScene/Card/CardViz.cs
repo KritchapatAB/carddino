@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Collections;
 
 public class CardViz : MonoBehaviour
 {
@@ -11,7 +12,7 @@ public class CardViz : MonoBehaviour
     public Image dinoImage;
     public Image dinoClass;
 
-    private Card cardData; // Reference to the card data
+    private CardInstance cardInstance; 
 
     public void LoadCard(Card card)
     {
@@ -21,24 +22,61 @@ public class CardViz : MonoBehaviour
             return;
         }
 
-        cardData = card; // Store the card data reference
+        cardInstance = new CardInstance(card, gameObject);
+        UpdateCardUI();
+    }
+
+    public void LoadCard(CardInstance instance)
+    {
+        if (instance == null)
+        {
+            Debug.LogWarning("Null card instance provided.");
+            return;
+        }
+
+        cardInstance = instance;
         UpdateCardUI();
     }
 
     private void UpdateCardUI()
     {
-        if (cardData == null) return;
+        if (cardInstance == null) return;
 
-        cardNameText.text = cardData.cardName;
-        costText.text = cardData.cost.ToString();
-        damageText.text = cardData.damage.ToString();
-        healthText.text = cardData.health.ToString();
-        dinoImage.sprite = cardData.dinoImage;
-        dinoClass.sprite = cardData.cardClass;
+        cardNameText.text = cardInstance.cardData.cardName;
+        costText.text = cardInstance.cardData.cost.ToString();
+        damageText.text = cardInstance.currentDamage.ToString(); 
+        healthText.text = cardInstance.currentHealth.ToString(); 
+        dinoImage.sprite = cardInstance.cardData.dinoImage;
+        dinoClass.sprite = cardInstance.cardData.cardClass;
     }
 
-    public Card GetCardData()
+    public void UpdateHealthUI(int newHealth)
     {
-        return cardData; // Provide access to the card data
+        healthText.text = newHealth.ToString(); // ✅ Fix: Update health display
+    }
+
+    public void FlashDamageEffect()
+    {
+        StartCoroutine(DamageFlashRoutine());
+    }
+
+    private IEnumerator DamageFlashRoutine()
+    {
+        healthText.color = Color.red;
+        yield return new WaitForSeconds(0.5f);
+        healthText.color = Color.white;
+    }
+
+    public CardInstance GetCardInstance()
+    {
+        if (cardInstance == null)
+        {
+            Debug.LogWarning($"⚠️ CardInstance is NULL in CardViz on {gameObject.name}");
+        }
+        else
+        {
+            Debug.Log($"✅ CardViz returning: {cardInstance.cardData.cardName}");
+        }
+        return cardInstance;
     }
 }

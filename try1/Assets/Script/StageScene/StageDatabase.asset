@@ -87,11 +87,11 @@ MonoBehaviour:
     stageType: 2
     difficulty: 2
     maxDeckSize: 3
-    maxAttackers: 1
-    maxDefenders: 1
+    maxAttackers: 0
+    maxDefenders: 2
     maxNormals: 0
-    minAttackerCost: 3
-    maxAttackerCost: 3
+    minAttackerCost: 0
+    maxAttackerCost: 0
     minDefenderCost: 3
     maxDefenderCost: 3
     minNormalCost: 0

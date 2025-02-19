@@ -20,3 +20,4 @@ MonoBehaviour:
   health: 4
   dinoType: Defender
   dinoImage: {fileID: 21300000, guid: a7c159e01c3cb11438225bb103239ac8, type: 3}
+  cardType: 2

@@ -2,6 +2,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
 using System;
+using System.Collections;
+
 
 public class BoardManager : MonoBehaviour
 {
@@ -386,7 +388,7 @@ public void GetStrongestPlayerCards(out Card strongestAttacker, out Card stronge
                 continue; // Skip this slot
             }
 
-            var card = placedCard.GetCardData();
+            var card = placedCard.GetCardInstance()?.cardData;
             if (card != null)
             {
                 if (card.dinoType == "Attacker" && card.damage > highestAttackDamage)
@@ -487,5 +489,103 @@ public void MoveEnemyCardsToActiveArea()
 
         Debug.Log($"[BoardManager] Found {enemyReserveSlots.Count} reserve slots & {enemyActiveSlots.Count} active slots.");
     }
+
+
+public CardInstance FindAttackTarget(CardInstance attacker, List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking) 
+{
+    Debug.Log($"🔎 FindAttackTarget - Attacker: {attacker.cardData.cardName} (Slot {slotIndex}) | PlayerAttacking: {isPlayerAttacking}");
+
+    List<CardInstance> defenders = new List<CardInstance>();
+    List<CardInstance> otherEnemies = new List<CardInstance>();
+
+    // ✅ Step 1: Identify Defenders and other enemies (Fix for AI tracking player slots)
+    for (int i = 0; i < opponentSlots.Count; i++)
+    {
+        GameObject targetSlot = opponentSlots[i];
+
+        // ✅ Check correct slot type based on attacker type
+        if (isPlayerAttacking)
+        {
+            EnemyCardSlot enemySlot = targetSlot.GetComponent<EnemyCardSlot>();
+            if (enemySlot == null || !enemySlot.IsOccupied()) continue;
+        }
+        else
+        {
+            CardSlot playerSlot = targetSlot.GetComponent<CardSlot>();
+            if (playerSlot == null || !playerSlot.IsOccupied()) continue;
+        }
+
+        // ✅ Find the actual card inside the slot
+        CardViz cardViz = null;
+        foreach (Transform child in targetSlot.transform)
+        {
+            cardViz = child.GetComponent<CardViz>();
+            if (cardViz != null) break;
+        }
+
+        if (cardViz == null) continue;
+        CardInstance targetCard = cardViz.GetCardInstance();
+        if (targetCard == null) continue;
+
+        // ✅ Categorize defenders and other targets
+        if (targetCard.cardData.dinoType == "Defender")
+        {
+            defenders.Add(targetCard);
+        }
+        else
+        {
+            otherEnemies.Add(targetCard);
+        }
+    }
+
+    // ✅ Step 2: Attack Defenders first (Target the leftmost defender)
+    if (defenders.Count > 0)
+    {
+        Debug.Log($"🛡 Targeting Defender: {defenders[0].cardData.cardName}");
+        return defenders[0];
+    }
+
+    // ✅ Step 3: If no Defenders exist, attack the unit in the same column (SlotIndex)
+    if (slotIndex < opponentSlots.Count)
+    {
+        GameObject targetSlot = opponentSlots[slotIndex];
+
+        // ✅ Ensure the correct slot type is checked
+        if (isPlayerAttacking)
+        {
+            EnemyCardSlot enemySlot = targetSlot.GetComponent<EnemyCardSlot>();
+            if (enemySlot != null && enemySlot.IsOccupied())
+            {
+                CardViz cardViz = targetSlot.transform.GetChild(0).GetComponent<CardViz>();
+                if (cardViz != null)
+                {
+                    Debug.Log($"🎯 Attacking Enemy in Slot {slotIndex}");
+                    return cardViz.GetCardInstance();
+                }
+            }
+        }
+        else
+        {
+            CardSlot playerSlot = targetSlot.GetComponent<CardSlot>();
+            if (playerSlot != null && playerSlot.IsOccupied())
+            {
+                CardViz cardViz = targetSlot.transform.GetChild(0).GetComponent<CardViz>();
+                if (cardViz != null)
+                {
+                    Debug.Log($"🎯 Attacking Player Card in Slot {slotIndex}");
+                    return cardViz.GetCardInstance();
+                }
+            }
+        }
+    }
+
+    // ✅ Step 4: If no enemies are in front, return null (Prepare for direct HP damage)
+    Debug.Log($"⚠️ No valid target in slot {slotIndex}. Skipping attack.");
+    return null;
+}
+
+
+
+
 
 }

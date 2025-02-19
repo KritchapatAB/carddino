@@ -20,3 +20,4 @@ MonoBehaviour:
   health: 6
   dinoType: Attacker
   dinoImage: {fileID: 21300000, guid: d52c2db40401f7f438eb01a08e726fac, type: 3}
+  cardType: 1

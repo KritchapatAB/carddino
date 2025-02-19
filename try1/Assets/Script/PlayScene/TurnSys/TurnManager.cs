@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TurnManager : MonoBehaviour
@@ -10,14 +11,16 @@ public class TurnManager : MonoBehaviour
     private EnemyManager enemyManager;
     private PlayerHand playerHand;
 
-    private int turnCounter = 0; // ✅ Ensure turnCounter is initialized
+    private int turnCounter = 0;
     public float enemyTurnDelay = 2.0f;
     private bool hasDrawnCardThisTurn = false;
+
+    public float attackDelay = 1.1f;
 
     void Start()
     {
         boardManager = FindObjectOfType<BoardManager>();
-        enemyManager = FindObjectOfType<EnemyManager>(); 
+        enemyManager = FindObjectOfType<EnemyManager>();
         playerHand = FindObjectOfType<PlayerHand>();
 
         if (enemyManager == null)
@@ -26,7 +29,7 @@ public class TurnManager : MonoBehaviour
         }
         else
         {
-            enemyManager.Initialize(); // ✅ Ensure EnemyManager is initialized
+            enemyManager.Initialize();
         }
 
         if (currentTurn == TurnState.EnemyTurn)
@@ -51,15 +54,20 @@ public class TurnManager : MonoBehaviour
 
     public void EndPlayerTurn()
     {
-        currentTurn = TurnState.EnemyTurn;
         Debug.Log($"Turn {turnCounter}: Player's turn ends.");
 
         boardManager.DisableSacrificePhase();
         boardManager.DisablePlayerControls();
         playerHand.TogglePlayerInteractions(false);
 
-        turnCounter++; 
-        StartCoroutine(HandleEnemyTurn());
+        // ✅ Correct: First process attack phase, THEN switch turn
+        StartCoroutine(ExecuteAttackPhase(() =>
+        {
+            // ✅ Now switch to Enemy Turn AFTER combat
+            currentTurn = TurnState.EnemyTurn;
+            turnCounter++;
+            StartCoroutine(HandleEnemyTurn());
+        }));
     }
 
     private IEnumerator HandleEnemyTurn()
@@ -69,7 +77,7 @@ public class TurnManager : MonoBehaviour
 
         if (enemyManager != null)
         {
-            enemyManager.StartTurn(turnCounter); // ✅ Pass turnCounter to fix error
+            enemyManager.StartTurn(turnCounter);
         }
         else
         {
@@ -80,16 +88,23 @@ public class TurnManager : MonoBehaviour
         EndEnemyTurn();
     }
 
-   public void EndEnemyTurn()
+    public void EndEnemyTurn()
     {
         Debug.Log($"Turn {turnCounter}: Enemy's turn ends.");
 
         boardManager.MoveEnemyCardsToActiveArea();
         boardManager.enemyManager.ReturnHandToDeck();
 
-        turnCounter++; // ✅ Increment turn count AFTER enemy's turn
-        StartPlayerTurn();
+        // ✅ Correct: First process attack phase, THEN switch turn
+        StartCoroutine(ExecuteAttackPhase(() =>
+        {
+            // ✅ Now switch to Player Turn AFTER combat
+            currentTurn = TurnState.PlayerTurn;
+            turnCounter++;
+            StartPlayerTurn();
+        }));
     }
+
 
     public bool CanPlayerDrawCard()
     {
@@ -100,10 +115,151 @@ public class TurnManager : MonoBehaviour
     {
         hasDrawnCardThisTurn = true;
     }
-    
+
     public void OnAttackButtonClicked()
     {
         Debug.Log("Attack button clicked. Ending player's turn.");
         EndPlayerTurn();
     }
+
+    private IEnumerator ExecuteAttackPhase(System.Action onComplete)
+    {
+        Debug.Log("Starting Attack Phase...");
+
+        if (currentTurn == TurnState.PlayerTurn)
+        {
+            Debug.Log("🔹 Player Attacks Enemy");
+            yield return StartCoroutine(ProcessAttacks(boardManager.playerSlots, boardManager.enemyActiveSlots, "Player"));
+        }
+        else if (currentTurn == TurnState.EnemyTurn)
+        {
+            Debug.Log("🔹 Enemy Attacks Player");
+            yield return StartCoroutine(ProcessAttacks(boardManager.enemyActiveSlots, boardManager.playerSlots, "Enemy"));
+        }
+
+        Debug.Log("Attack Phase Complete.");
+        onComplete?.Invoke(); // Calls next turn transition (e.g., HandleEnemyTurn)
+    }
+
+
+private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> defenders, string attackerType)
+{
+    Debug.Log("PA1");
+
+    for (int i = 0; i < attackers.Count; i++)
+    {
+        GameObject attackerSlot = attackers[i]; // ✅ The slot where the attacker is
+        GameObject targetSlot = defenders[i];  // ✅ The corresponding enemy slot
+
+        bool isPlayerTurn = attackerType == "Player";
+        CardInstance attacker = null;
+
+        // ✅ Find the attacking card inside the attacker's slot (Fixed logic)
+        CardViz attackerCardViz = null;
+        foreach (Transform child in attackerSlot.transform)
+        {
+            attackerCardViz = child.GetComponent<CardViz>();
+            if (attackerCardViz != null) break; // Found the card, exit loop
+        }
+
+        if (attackerCardViz == null)
+        {
+            Debug.LogWarning($"⚠️ No CardViz found in attacker slot: {attackerSlot.name}");
+            continue;
+        }
+
+        attacker = attackerCardViz.GetCardInstance();
+        if (attacker == null)
+        {
+            Debug.LogWarning($"⚠️ CardInstance is NULL for {attackerSlot.name}!");
+            continue;
+        }
+
+        Debug.Log($"✅ Attacker Found: {attacker.cardData.cardName} (Slot {i})");
+
+        // ✅ Find the correct **defending card** based on turn
+        CardInstance target = null;
+        CardViz defenderCardViz = null;
+
+        foreach (Transform child in targetSlot.transform)
+        {
+            defenderCardViz = child.GetComponent<CardViz>();
+            if (defenderCardViz != null) break; // Found the card, exit loop
+        }
+
+        if (defenderCardViz != null)
+        {
+            target = defenderCardViz.GetCardInstance();
+        }
+
+        if (target == null)
+        {
+            Debug.Log($"⚠️ No valid target in slot {i}. Skipping attack.");
+            continue;
+        }
+
+        Debug.Log($"🎯 {attackerType} Attacks {target.cardData.cardName} in Slot {i}");
+
+        if (attacker.cardData.dinoType == "Boss")
+        {
+            yield return StartCoroutine(HandleBossAttack(attacker, defenders, attackerType));
+        }
+        else
+        {
+            yield return StartCoroutine(HandleNormalAttack(attacker, defenders, i, attackerType));
+        }
+
+        yield return new WaitForSeconds(attackDelay);
+    }
+
+    Debug.Log("PA3");
+}
+
+
+    private IEnumerator HandleNormalAttack(CardInstance attacker, List<GameObject> defenders, int slotIndex, string attackerType)
+    {
+        bool isPlayerTurn = (attackerType == "Player");
+
+        // ✅ Now passes `isPlayerTurn` to properly target opponents
+        CardInstance target = boardManager.FindAttackTarget(attacker, defenders, slotIndex, isPlayerTurn);
+
+        if (target != null)
+        {
+            // ✅ Attacker bonus applies only to card battles, not direct HP damage
+            int attackDamage = (attacker.cardData.dinoType == "Attacker") ? attacker.currentDamage + 1 : attacker.currentDamage;
+            Debug.Log($"[{attackerType} Turn] {attacker.cardData.cardName} attacks {target.cardData.cardName} for {attackDamage} damage!");
+            target.TakeDamage(attackDamage);
+        }
+        else
+        {
+            Debug.Log($"[{attackerType} Turn] {attacker.cardData.cardName} has no valid target.");
+        }
+
+        yield return null;
+    }
+
+
+
+    private IEnumerator HandleBossAttack(CardInstance boss, List<GameObject> defenders, string attackerType)
+    {
+        bool isPlayerTurn = (attackerType == "Player");
+
+        if (defenders.Count > 0)
+        {
+            // ✅ Ensure Boss targets correctly based on turn
+            CardInstance target = boardManager.FindAttackTarget(boss, defenders, 0, isPlayerTurn);
+            int bossDamage = boss.currentDamage * 2; // ✅ Boss does double damage
+
+            Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} attacks {target.cardData.cardName} for {bossDamage} damage!");
+            target.TakeDamage(bossDamage);
+        }
+        else
+        {
+            Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} damages all Player Cards!");
+        }
+
+        yield return null;
+    }
+
+
 }
