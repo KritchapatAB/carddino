@@ -490,18 +490,39 @@ public void MoveEnemyCardsToActiveArea()
         Debug.Log($"[BoardManager] Found {enemyReserveSlots.Count} reserve slots & {enemyActiveSlots.Count} active slots.");
     }
 
-
-public CardInstance FindAttackTarget(CardInstance attacker, List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking) 
+public CardInstance FindAttackTarget(CardInstance attacker, List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)
 {
     Debug.Log($"🔎 FindAttackTarget - Attacker: {attacker.cardData.cardName} (Slot {slotIndex}) | PlayerAttacking: {isPlayerAttacking}");
 
-    List<CardInstance> defenders = new List<CardInstance>();
-    List<CardInstance> otherEnemies = new List<CardInstance>();
+    // ✅ Step 1: Find Defenders First
+    CardInstance defenderTarget = FindDefenderTarget(opponentSlots, isPlayerAttacking);
+    if (defenderTarget != null)
+    {
+        Debug.Log($"🛡 Targeting Defender: {defenderTarget.cardData.cardName}");
+        return defenderTarget;
+    }
 
-    // ✅ Step 1: Identify Defenders and other enemies (Fix for AI tracking player slots)
+    // ✅ Step 2: If no Defenders, attack front card in the same slotIndex
+    CardInstance frontCardTarget = FindFrontCardTarget(opponentSlots, slotIndex, isPlayerAttacking);
+    if (frontCardTarget != null)
+    {
+        Debug.Log($"🎯 Attacking Front Card in Slot {slotIndex}: {frontCardTarget.cardData.cardName}");
+        return frontCardTarget;
+    }
+
+    // ✅ Step 3: If no valid target, skip attack
+    Debug.Log($"⚠️ No valid target in slot {slotIndex}. Skipping attack.");
+    return null;
+}
+
+private CardInstance FindDefenderTarget(List<GameObject> opponentSlots, bool isPlayerAttacking)
+{
+    List<CardInstance> defenders = new List<CardInstance>();
+
     for (int i = 0; i < opponentSlots.Count; i++)
     {
         GameObject targetSlot = opponentSlots[i];
+        CardViz cardViz = null;
 
         // ✅ Check correct slot type based on attacker type
         if (isPlayerAttacking)
@@ -515,8 +536,7 @@ public CardInstance FindAttackTarget(CardInstance attacker, List<GameObject> opp
             if (playerSlot == null || !playerSlot.IsOccupied()) continue;
         }
 
-        // ✅ Find the actual card inside the slot
-        CardViz cardViz = null;
+        // ✅ Now look for the CardViz inside the occupied slot
         foreach (Transform child in targetSlot.transform)
         {
             cardViz = child.GetComponent<CardViz>();
@@ -527,65 +547,50 @@ public CardInstance FindAttackTarget(CardInstance attacker, List<GameObject> opp
         CardInstance targetCard = cardViz.GetCardInstance();
         if (targetCard == null) continue;
 
-        // ✅ Categorize defenders and other targets
+        // ✅ Collect all Defenders
         if (targetCard.cardData.dinoType == "Defender")
         {
             defenders.Add(targetCard);
         }
-        else
-        {
-            otherEnemies.Add(targetCard);
-        }
     }
 
-    // ✅ Step 2: Attack Defenders first (Target the leftmost defender)
-    if (defenders.Count > 0)
-    {
-        Debug.Log($"🛡 Targeting Defender: {defenders[0].cardData.cardName}");
-        return defenders[0];
-    }
+    // ✅ Return the leftmost Defender, if any
+    return defenders.Count > 0 ? defenders[0] : null;
+}
 
-    // ✅ Step 3: If no Defenders exist, attack the unit in the same column (SlotIndex)
+private CardInstance FindFrontCardTarget(List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)
+{
     if (slotIndex < opponentSlots.Count)
     {
         GameObject targetSlot = opponentSlots[slotIndex];
+        CardViz cardViz = null;
 
-        // ✅ Ensure the correct slot type is checked
+        // ✅ Check correct slot type based on attacker type
         if (isPlayerAttacking)
         {
             EnemyCardSlot enemySlot = targetSlot.GetComponent<EnemyCardSlot>();
-            if (enemySlot != null && enemySlot.IsOccupied())
-            {
-                CardViz cardViz = targetSlot.transform.GetChild(0).GetComponent<CardViz>();
-                if (cardViz != null)
-                {
-                    Debug.Log($"🎯 Attacking Enemy in Slot {slotIndex}");
-                    return cardViz.GetCardInstance();
-                }
-            }
+            if (enemySlot == null || !enemySlot.IsOccupied()) return null;
         }
         else
         {
             CardSlot playerSlot = targetSlot.GetComponent<CardSlot>();
-            if (playerSlot != null && playerSlot.IsOccupied())
-            {
-                CardViz cardViz = targetSlot.transform.GetChild(0).GetComponent<CardViz>();
-                if (cardViz != null)
-                {
-                    Debug.Log($"🎯 Attacking Player Card in Slot {slotIndex}");
-                    return cardViz.GetCardInstance();
-                }
-            }
+            if (playerSlot == null || !playerSlot.IsOccupied()) return null;
         }
+
+        // ✅ Now look for the CardViz inside the occupied slot
+        foreach (Transform child in targetSlot.transform)
+        {
+            cardViz = child.GetComponent<CardViz>();
+            if (cardViz != null) break;
+        }
+
+        if (cardViz == null) return null;
+
+        CardInstance targetCard = cardViz.GetCardInstance();
+        return targetCard;
     }
 
-    // ✅ Step 4: If no enemies are in front, return null (Prepare for direct HP damage)
-    Debug.Log($"⚠️ No valid target in slot {slotIndex}. Skipping attack.");
     return null;
 }
-
-
-
-
 
 }

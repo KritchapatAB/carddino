@@ -218,17 +218,22 @@ private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> 
 
     private IEnumerator HandleNormalAttack(CardInstance attacker, List<GameObject> defenders, int slotIndex, string attackerType)
     {
-        bool isPlayerTurn = (attackerType == "Player");
+        bool isPlayerAttacking = (attackerType == "Player");
 
-        // ✅ Now passes `isPlayerTurn` to properly target opponents
-        CardInstance target = boardManager.FindAttackTarget(attacker, defenders, slotIndex, isPlayerTurn);
+        // ✅ Clear target state to avoid overlap
+        CardInstance target = null;
+
+        // ✅ Correctly targets Player or Enemy based on turn
+        target = boardManager.FindAttackTarget(attacker, defenders, slotIndex, isPlayerAttacking);
 
         if (target != null)
         {
-            // ✅ Attacker bonus applies only to card battles, not direct HP damage
             int attackDamage = (attacker.cardData.dinoType == "Attacker") ? attacker.currentDamage + 1 : attacker.currentDamage;
             Debug.Log($"[{attackerType} Turn] {attacker.cardData.cardName} attacks {target.cardData.cardName} for {attackDamage} damage!");
             target.TakeDamage(attackDamage);
+
+            // ✅ Clear target state after attack
+            target = null;
         }
         else
         {
@@ -237,6 +242,7 @@ private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> 
 
         yield return null;
     }
+
 
 
 
