@@ -235,65 +235,25 @@ private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> 
 
 
     private IEnumerator HandleBossAttack(CardInstance boss, List<GameObject> defenders, string attackerType)
-{
-    bool isPlayerTurn = (attackerType == "Player");
-    int bossDamage = boss.currentDamage * 2; // ✅ Boss does double damage
-    bool targetFound = false;
-
-    // Step 1: Prioritize Defenders
-    if (defenders.Count > 0)
     {
-        // ✅ Target the leftmost Defender
-        CardInstance target = boardManager.FindDefenderTarget(defenders, isPlayerTurn);
-        if (target != null)
-        {
-            Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} attacks Defender {target.cardData.cardName} for {bossDamage} damage!");
-            target.TakeDamage(bossDamage);
-            targetFound = true;
-        }
-    }
+        bool isPlayerTurn = (attackerType == "Player");
 
-    // Step 2: Closest Card in Same Column
-    if (!targetFound)
-    {
-        // ✅ Find closest card in the same column as the Boss
-        int bossSlotIndex = boardManager.GetSlotIndex(boss);
-        CardInstance target = boardManager.FindFrontCardTarget(defenders, bossSlotIndex, isPlayerTurn);
-
-        if (target != null)
+        if (defenders.Count > 0)
         {
+            // ✅ Ensure Boss targets correctly based on turn
+            CardInstance target = boardManager.FindAttackTarget(boss, defenders, 0, isPlayerTurn);
+            int bossDamage = boss.currentDamage * 2; // ✅ Boss does double damage
+
             Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} attacks {target.cardData.cardName} for {bossDamage} damage!");
             target.TakeDamage(bossDamage);
-            targetFound = true;
         }
-    }
-
-    // Step 3: Attack All Cards (if no Defenders and no cards in the same column)
-    if (!targetFound)
-    {
-        Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} attacks ALL cards on the opposing field!");
-        List<GameObject> targetSlots = isPlayerTurn ? boardManager.enemyActiveSlots : boardManager.playerSlots;
-
-        foreach (GameObject slot in targetSlots)
+        else
         {
-            CardViz cardViz = null;
-            foreach (Transform child in slot.transform)
-            {
-                cardViz = child.GetComponent<CardViz>();
-                if (cardViz != null) break;
-            }
-
-            if (cardViz != null)
-            {
-                CardInstance target = cardViz.GetCardInstance();
-                Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} deals {bossDamage} damage to {target.cardData.cardName}!");
-                target.TakeDamage(bossDamage);
-            }
+            Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} damages all Player Cards!");
         }
-    }
 
-    yield return null;
-}
+        yield return null;
+    }
 
 
 }
