@@ -58,12 +58,17 @@ public class EnemyCardSlot : MonoBehaviour
 
 
 
-   public void ClearSlot()
+    public void ClearSlot()
 {
-    Debug.Log($"[ClearSlot] Releasing {gameObject.name}, but keeping {placedCard?.name ?? "null"}");
+    Debug.Log($"[ClearSlot] Releasing {gameObject.name}, clearing {placedCard?.name ?? "null"}");
 
-    // ✅ DO NOT Destroy the card—just remove the reference from this slot
-    placedCard = null;
+    // ✅ Properly clear the slot and remove card reference
+    if (placedCard != null)
+    {
+        // Destroy(placedCard);
+        placedCard = null;
+    }
+
     isOccupied = false;
 }
 

@@ -48,28 +48,31 @@ MonoBehaviour:
   - stageName: Boss1
     stageType: 2
     difficulty: 0
-    maxDeckSize: 2
+    maxDeckSize: 4
     maxAttackers: 0
     maxDefenders: 1
     maxNormals: 0
     minAttackerCost: 0
     maxAttackerCost: 0
-    minDefenderCost: 2
-    maxDefenderCost: 2
+    minDefenderCost: 3
+    maxDefenderCost: 3
     minNormalCost: 0
     maxNormalCost: 0
     specificCards:
     - cardId: 19
       quantity: 1
-      turn: 1
+      turn: 4
+    - cardId: 19
+      quantity: 1
+      turn: 0
     bonusHealth: 0
     bonusDamage: 0
   - stageName: Boss2
     stageType: 2
     difficulty: 1
-    maxDeckSize: 2
+    maxDeckSize: 1
     maxAttackers: 0
-    maxDefenders: 1
+    maxDefenders: 0
     maxNormals: 0
     minAttackerCost: 0
     maxAttackerCost: 0
@@ -80,7 +83,7 @@ MonoBehaviour:
     specificCards:
     - cardId: 20
       quantity: 1
-      turn: 3
+      turn: 0
     bonusHealth: 0
     bonusDamage: 0
   - stageName: Boss3

@@ -69,14 +69,14 @@ public class CardViz : MonoBehaviour
 
     public CardInstance GetCardInstance()
     {
-        if (cardInstance == null)
-        {
-            Debug.LogWarning($"⚠️ CardInstance is NULL in CardViz on {gameObject.name}");
-        }
-        else
-        {
-            Debug.Log($"✅ CardViz returning: {cardInstance.cardData.cardName}");
-        }
+        // if (cardInstance == null)
+        // {
+        //     Debug.LogWarning($"⚠️ CardInstance is NULL in CardViz on {gameObject.name}");
+        // }
+        // else
+        // {
+        //     Debug.Log($"✅ CardViz returning: {cardInstance.cardData.cardName}");
+        // }
         return cardInstance;
     }
 }

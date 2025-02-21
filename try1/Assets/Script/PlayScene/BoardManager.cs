@@ -409,50 +409,6 @@ public void GetStrongestPlayerCards(out Card strongestAttacker, out Card stronge
     Debug.Log($"✅ Strongest Defender: {strongestDefender?.cardName ?? "None"}");
 }
 
-public void MoveEnemyCardsToActiveArea()
-{
-    List<EnemyCardSlot> reserveSlots = new();
-    List<EnemyCardSlot> activeSlots = new();
-
-    // ✅ Find all slots in Reserve and Active areas
-    foreach (Transform child in GameObject.Find("EnemyReserveArea").transform)
-    {
-        var slot = child.GetComponent<EnemyCardSlot>();
-        if (slot != null) reserveSlots.Add(slot);
-    }
-
-    foreach (Transform child in GameObject.Find("EnemyActiveArea").transform)
-    {
-        var slot = child.GetComponent<EnemyCardSlot>();
-        if (slot != null) activeSlots.Add(slot);
-    }
-
-    // ✅ Move cards correctly
-    int minSlots = Mathf.Min(reserveSlots.Count, activeSlots.Count); // Make sure we don’t go out of bounds
-
-    for (int i = 0; i < minSlots; i++) 
-    {
-        if (!activeSlots[i].IsOccupied()) 
-        {
-            GameObject cardToMove = reserveSlots[i].GetPlacedCard();
-
-            Debug.Log($"[MoveEnemyCardsToActiveArea] Moving {cardToMove?.name ?? "null"} from {reserveSlots[i].name} to {activeSlots[i].name}");
-
-            if (cardToMove != null)
-            {
-                // ✅ Step 1: Move the card to the new slot
-                activeSlots[i].PlaceCard(cardToMove);
-                cardToMove.transform.SetParent(activeSlots[i].transform, false);
-                cardToMove.transform.localPosition = Vector3.zero;
-
-                // ✅ Step 2: Only clear the old slot AFTER moving the card
-                reserveSlots[i].ClearSlot();
-            }
-        }
-    }
-}
-
-
     private void FindEnemySlots()
     {
         enemyReserveSlots.Clear();
@@ -490,30 +446,37 @@ public void MoveEnemyCardsToActiveArea()
         Debug.Log($"[BoardManager] Found {enemyReserveSlots.Count} reserve slots & {enemyActiveSlots.Count} active slots.");
     }
 
-public CardInstance FindAttackTarget(CardInstance attacker, List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)
-{
-    Debug.Log($"🔎 FindAttackTarget - Attacker: {attacker.cardData.cardName} (Slot {slotIndex}) | PlayerAttacking: {isPlayerAttacking}");
+// public CardInstance FindAttackTarget(CardInstance attacker, List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)  
+// {
+//     Debug.Log($"🔎 FindAttackTarget - Attacker: {attacker.cardData.cardName} (Slot {slotIndex}) | PlayerAttacking: {isPlayerAttacking}");
 
-    // ✅ Step 1: Find Defenders First
-    CardInstance defenderTarget = FindDefenderTarget(opponentSlots, isPlayerAttacking);
-    if (defenderTarget != null)
-    {
-        Debug.Log($"🛡 Targeting Defender: {defenderTarget.cardData.cardName}");
-        return defenderTarget;
-    }
+//     // Step 1: Find Defenders First
+//     CardInstance defenderTarget = FindDefenderTarget(opponentSlots, isPlayerAttacking);
+//     if (defenderTarget != null)
+//     {
+//         Debug.Log($"🛡 Targeting Defender: {defenderTarget.cardData.cardName}");
+//         Debug.Log("Defender?");
+//         return defenderTarget;
+//     }
 
-    // ✅ Step 2: If no Defenders, attack front card in the same slotIndex
-    CardInstance frontCardTarget = FindFrontCardTarget(opponentSlots, slotIndex, isPlayerAttacking);
-    if (frontCardTarget != null)
-    {
-        Debug.Log($"🎯 Attacking Front Card in Slot {slotIndex}: {frontCardTarget.cardData.cardName}");
-        return frontCardTarget;
-    }
+//     // Step 2: If no Defenders, check the frontmost card in the same column
+//     for (int offset = 0; offset < opponentSlots.Count; offset++)
+//     {
+//         int checkIndex = slotIndex - offset;
+//         if (checkIndex >= 0)
+//         {
+//             CardInstance frontCardTarget = FindFrontCardTarget(opponentSlots, checkIndex, isPlayerAttacking);
+//             if (frontCardTarget != null)
+//             {
+//                 Debug.Log($"🎯 Attacking Front Card in Slot {checkIndex}: {frontCardTarget.cardData.cardName}");
+//                 return frontCardTarget;
+//             }
+//         }
+//     }
 
-    // ✅ Step 3: If no valid target, skip attack
-    Debug.Log($"⚠️ No valid target in slot {slotIndex}. Skipping attack.");
-    return null;
-}
+//     Debug.Log($"⚠️ No valid target in column {slotIndex}. Skipping attack.");
+//     return null;
+// }
 
 private CardInstance FindDefenderTarget(List<GameObject> opponentSlots, bool isPlayerAttacking)
 {
@@ -558,39 +521,124 @@ private CardInstance FindDefenderTarget(List<GameObject> opponentSlots, bool isP
     return defenders.Count > 0 ? defenders[0] : null;
 }
 
-private CardInstance FindFrontCardTarget(List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)
+public CardInstance FindAttackTarget(CardInstance attacker, List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)
 {
-    if (slotIndex < opponentSlots.Count)
+    Debug.Log($"🔎 FindAttackTarget - Attacker: {attacker.cardData.cardName} (Slot {slotIndex}) | PlayerAttacking: {isPlayerAttacking}");
+
+    // Step 1: Find Defenders First
+    CardInstance defenderTarget = FindDefenderTarget(opponentSlots, isPlayerAttacking);
+    if (defenderTarget != null)
     {
-        GameObject targetSlot = opponentSlots[slotIndex];
-        CardViz cardViz = null;
+        Debug.Log($"🛡 Targeting Defender: {defenderTarget.cardData.cardName}");
+        return defenderTarget;
+    }
 
-        // ✅ Check correct slot type based on attacker type
-        if (isPlayerAttacking)
+    // Step 2: If no Defenders, find the closest card in the same column
+    CardInstance closestCardTarget = FindClosestCardInColumn(opponentSlots, slotIndex, isPlayerAttacking);
+    if (closestCardTarget != null)
+    {
+        Debug.Log($"(Attacking Closest Card in Slot {slotIndex}: {closestCardTarget.cardData.cardName}");
+        return closestCardTarget;
+    }
+
+    Debug.Log($"⚠️ No valid target in column {slotIndex}. Skipping attack.");
+    return null;
+}
+
+private CardInstance FindClosestCardInColumn(List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)
+{
+    GameObject targetSlot = opponentSlots[slotIndex];
+    CardViz cardViz = null;
+
+    // ✅ Check correct slot type based on attacker type
+    if (isPlayerAttacking)
+    {
+        EnemyCardSlot enemySlot = targetSlot.GetComponent<EnemyCardSlot>();
+        if (enemySlot == null || !enemySlot.IsOccupied())
         {
-            EnemyCardSlot enemySlot = targetSlot.GetComponent<EnemyCardSlot>();
-            if (enemySlot == null || !enemySlot.IsOccupied()) return null;
+            Debug.Log($"⚠️ No target in the same column (EnemyActiveArea). Skipping attack.");
+            return null;
         }
-        else
+    }
+    else
+    {
+        CardSlot playerSlot = targetSlot.GetComponent<CardSlot>();
+        if (playerSlot == null || !playerSlot.IsOccupied())
         {
-            CardSlot playerSlot = targetSlot.GetComponent<CardSlot>();
-            if (playerSlot == null || !playerSlot.IsOccupied()) return null;
+            Debug.Log($"⚠️ No target in the same column (PlayerArea). Skipping attack.");
+            return null;
         }
+    }
 
-        // ✅ Now look for the CardViz inside the occupied slot
-        foreach (Transform child in targetSlot.transform)
-        {
-            cardViz = child.GetComponent<CardViz>();
-            if (cardViz != null) break;
-        }
+    // ✅ Now look for the CardViz inside the occupied slot
+    foreach (Transform child in targetSlot.transform)
+    {
+        cardViz = child.GetComponent<CardViz>();
+        if (cardViz != null) break;
+    }
 
-        if (cardViz == null) return null;
+    if (cardViz == null)
+    {
+        Debug.Log($"⚠️ No CardViz found in the same column.");
+        return null;
+    }
 
-        CardInstance targetCard = cardViz.GetCardInstance();
+    CardInstance targetCard = cardViz.GetCardInstance();
+    if (targetCard != null)
+    {
+        Debug.Log($"🎯 Attacking Closest Card in the SAME Column {slotIndex}: {targetCard.cardData.cardName}");
         return targetCard;
     }
 
+    Debug.Log($"⚠️ No valid front card found in column {slotIndex}");
     return null;
+}
+
+
+public void MoveEnemyCardsToActiveArea()
+{
+    List<EnemyCardSlot> reserveSlots = new();
+    List<EnemyCardSlot> activeSlots = new();
+
+    // ✅ Find all slots in Reserve and Active areas
+    foreach (Transform child in GameObject.Find("EnemyReserveArea").transform)
+    {
+        var slot = child.GetComponent<EnemyCardSlot>();
+        if (slot != null) reserveSlots.Add(slot);
+    }
+
+    foreach (Transform child in GameObject.Find("EnemyActiveArea").transform)
+    {
+        var slot = child.GetComponent<EnemyCardSlot>();
+        if (slot != null) activeSlots.Add(slot);
+    }
+
+    int minSlots = Mathf.Min(reserveSlots.Count, activeSlots.Count); 
+
+    for (int i = 0; i < minSlots; i++) 
+    {
+        if (!activeSlots[i].IsOccupied()) 
+        {
+            GameObject cardToMove = reserveSlots[i].GetPlacedCard();
+
+            Debug.Log($"[MoveEnemyCardsToActiveArea] Moving {cardToMove?.name ?? "null"} from {reserveSlots[i].name} to {activeSlots[i].name}");
+
+            if (cardToMove != null)
+            {
+                // ✅ Move the card to the new slot
+                activeSlots[i].PlaceCard(cardToMove);
+
+                cardToMove.transform.SetParent(activeSlots[i].transform, false);
+                cardToMove.transform.localPosition = Vector3.zero;
+                cardToMove.transform.localRotation = Quaternion.identity;
+                cardToMove.transform.localScale = Vector3.one;
+
+                reserveSlots[i].ClearSlot(); // ✅ Clear old slot AFTER moving
+            }
+        }
+    }
+
+    Debug.Log("[MoveEnemyCardsToActiveArea] Completed moving cards.");
 }
 
 }
