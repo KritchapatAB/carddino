@@ -43,20 +43,9 @@ public class EnemyCardSlot : MonoBehaviour
     }
 
     public GameObject GetPlacedCard()
-{
-    if (placedCard == null)
     {
-        Debug.LogError($"❌ [EnemyCardSlot] GetPlacedCard() called but no card is placed in {gameObject.name}!");
+        return placedCard;
     }
-    else
-    {
-        Debug.Log($"✅ [EnemyCardSlot] Returning card: {placedCard.name} from {gameObject.name}");
-    }
-
-    return placedCard;
-}
-
-
 
     public void ClearSlot()
 {

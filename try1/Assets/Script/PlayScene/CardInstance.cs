@@ -39,13 +39,26 @@ public class CardInstance
     {
         if (cardObject != null)
         {
-            var slot = cardObject.transform.parent.GetComponent<CardSlot>();
-            if (slot != null)
+            // ✅ Separate variables for each type of slot
+            var enemySlot = cardObject.transform.parent.GetComponent<EnemyCardSlot>();
+            var playerSlot = cardObject.transform.parent.GetComponent<CardSlot>();
+
+            // ✅ Check and clear EnemyCardSlot first
+            if (enemySlot != null)
             {
-                slot.SetOccupied(false); // ✅ Mark the slot as unoccupied
+                enemySlot.ClearSlot(); // ✅ Mark the Enemy slot as unoccupied
             }
+            // ✅ If not an EnemyCardSlot, check for Player CardSlot
+            else if (playerSlot != null)
+            {
+                playerSlot.SetOccupied(false); // ✅ Mark the Player slot as unoccupied
+            }
+
+            // ✅ Destroy the card GameObject
             GameObject.Destroy(cardObject);
+            Debug.Log($"[DestroyCard] Destroyed {cardData.cardName}");
         }
     }
+
 }
 

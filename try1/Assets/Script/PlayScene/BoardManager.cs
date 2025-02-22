@@ -16,12 +16,10 @@ public class BoardManager : MonoBehaviour
     private bool isSacrificePhaseActive = false;
 
     public List<Card> engagePlayerDeck = new(); // Deck for the current fight
-    public PlayerDeckManager playerDeckManager;
-
-
     public EnemyDeckManager enemyDeckManager;
 
     public EnemyManager enemyManager;
+    public HealthManager HealthManager;
 
     public event Action OnDeckChanged;
     public CardDatabase cardDatabase;
@@ -446,39 +444,7 @@ public void GetStrongestPlayerCards(out Card strongestAttacker, out Card stronge
         Debug.Log($"[BoardManager] Found {enemyReserveSlots.Count} reserve slots & {enemyActiveSlots.Count} active slots.");
     }
 
-// public CardInstance FindAttackTarget(CardInstance attacker, List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)  
-// {
-//     Debug.Log($"🔎 FindAttackTarget - Attacker: {attacker.cardData.cardName} (Slot {slotIndex}) | PlayerAttacking: {isPlayerAttacking}");
-
-//     // Step 1: Find Defenders First
-//     CardInstance defenderTarget = FindDefenderTarget(opponentSlots, isPlayerAttacking);
-//     if (defenderTarget != null)
-//     {
-//         Debug.Log($"🛡 Targeting Defender: {defenderTarget.cardData.cardName}");
-//         Debug.Log("Defender?");
-//         return defenderTarget;
-//     }
-
-//     // Step 2: If no Defenders, check the frontmost card in the same column
-//     for (int offset = 0; offset < opponentSlots.Count; offset++)
-//     {
-//         int checkIndex = slotIndex - offset;
-//         if (checkIndex >= 0)
-//         {
-//             CardInstance frontCardTarget = FindFrontCardTarget(opponentSlots, checkIndex, isPlayerAttacking);
-//             if (frontCardTarget != null)
-//             {
-//                 Debug.Log($"🎯 Attacking Front Card in Slot {checkIndex}: {frontCardTarget.cardData.cardName}");
-//                 return frontCardTarget;
-//             }
-//         }
-//     }
-
-//     Debug.Log($"⚠️ No valid target in column {slotIndex}. Skipping attack.");
-//     return null;
-// }
-
-private CardInstance FindDefenderTarget(List<GameObject> opponentSlots, bool isPlayerAttacking)
+public CardInstance FindDefenderTarget(List<GameObject> opponentSlots, bool isPlayerAttacking)
 {
     List<CardInstance> defenders = new List<CardInstance>();
 
@@ -519,30 +485,6 @@ private CardInstance FindDefenderTarget(List<GameObject> opponentSlots, bool isP
 
     // ✅ Return the leftmost Defender, if any
     return defenders.Count > 0 ? defenders[0] : null;
-}
-
-public CardInstance FindAttackTarget(CardInstance attacker, List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)
-{
-    Debug.Log($"🔎 FindAttackTarget - Attacker: {attacker.cardData.cardName} (Slot {slotIndex}) | PlayerAttacking: {isPlayerAttacking}");
-
-    // Step 1: Find Defenders First
-    CardInstance defenderTarget = FindDefenderTarget(opponentSlots, isPlayerAttacking);
-    if (defenderTarget != null)
-    {
-        Debug.Log($"🛡 Targeting Defender: {defenderTarget.cardData.cardName}");
-        return defenderTarget;
-    }
-
-    // Step 2: If no Defenders, find the closest card in the same column
-    CardInstance closestCardTarget = FindClosestCardInColumn(opponentSlots, slotIndex, isPlayerAttacking);
-    if (closestCardTarget != null)
-    {
-        Debug.Log($"(Attacking Closest Card in Slot {slotIndex}: {closestCardTarget.cardData.cardName}");
-        return closestCardTarget;
-    }
-
-    Debug.Log($"⚠️ No valid target in column {slotIndex}. Skipping attack.");
-    return null;
 }
 
 private CardInstance FindClosestCardInColumn(List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)
@@ -640,5 +582,113 @@ public void MoveEnemyCardsToActiveArea()
 
     Debug.Log("[MoveEnemyCardsToActiveArea] Completed moving cards.");
 }
+
+public CardInstance FindNormalAttackTarget(CardInstance attacker, List<GameObject> opponentSlots, int slotIndex, bool isPlayerAttacking)
+{
+    Debug.Log($"🔎 FindNormalAttackTarget - Attacker: {attacker.cardData.cardName} (Slot {slotIndex}) | PlayerAttacking: {isPlayerAttacking}");
+
+    // Step 1: Find Defenders First
+    CardInstance defenderTarget = FindDefenderTarget(opponentSlots, isPlayerAttacking);
+    if (defenderTarget != null)
+    {
+        Debug.Log($"🛡 Targeting Defender: {defenderTarget.cardData.cardName}");
+        return defenderTarget;
+    }
+
+    // Step 2: Find Front Card in the same column
+    CardInstance frontCardTarget = null;
+    GameObject targetSlot = opponentSlots[slotIndex];
+
+    if (isPlayerAttacking)
+    {
+        EnemyCardSlot enemySlot = targetSlot.GetComponent<EnemyCardSlot>();
+        if (enemySlot != null && enemySlot.IsOccupied())
+        {
+            CardViz cardViz = targetSlot.GetComponentInChildren<CardViz>();
+            frontCardTarget = cardViz?.GetCardInstance();
+        }
+    }
+    else
+    {
+        CardSlot playerSlot = targetSlot.GetComponent<CardSlot>();
+        if (playerSlot != null && playerSlot.IsOccupied())
+        {
+            CardViz cardViz = targetSlot.GetComponentInChildren<CardViz>();
+            frontCardTarget = cardViz?.GetCardInstance();
+        }
+    }
+
+    if (frontCardTarget != null)
+    {
+        Debug.Log($"🎯 Attacking Front Card: {frontCardTarget.cardData.cardName}");
+        return frontCardTarget;
+    }
+
+    // Step 3: If no Front Card, target the Boss
+    CardInstance bossTarget = null;
+    foreach (var slot in opponentSlots)
+    {
+        CardViz cardViz = slot.GetComponentInChildren<CardViz>();
+        CardInstance potentialBoss = cardViz?.GetCardInstance();
+
+        if (potentialBoss != null && potentialBoss.cardData.dinoType == "Boss")
+        {
+            bossTarget = potentialBoss;
+            Debug.Log($"🎯 Attacking BOSS: {bossTarget.cardData.cardName}");
+            return bossTarget;
+        }
+    }
+
+    if (isPlayerAttacking)
+    {
+        Debug.Log($"🔥 Direct Attack to Enemy! {attacker.cardData.cardName} deals {attacker.currentDamage} damage!");
+        HealthManager.Instance.DamageEnemy(attacker.currentDamage);
+    }
+    else
+    {
+        Debug.Log($"🔥 Direct Attack to Player! {attacker.cardData.cardName} deals {attacker.currentDamage} damage!");
+        HealthManager.Instance.DamagePlayer(attacker.currentDamage);
+    }
+
+    Debug.Log($"⚠️ No valid target in column {slotIndex}. Direct Attack performed.");
+   
+    return null;
+}
+
+public List<CardInstance> FindBossAttackTarget(CardInstance boss, List<GameObject> playerSlots)
+{
+    Debug.Log($"🔎 FindBossAttackTarget - Boss: {boss.cardData.cardName}");
+    List<CardInstance> targets = new List<CardInstance>();
+
+    // ✅ Step 1: Check for the Leftmost Defender
+    CardInstance leftmostDefender = FindDefenderTarget(playerSlots, false);
+
+    if (leftmostDefender != null)
+    {
+        Debug.Log($"🛡 Boss Targeting Leftmost Defender: {leftmostDefender.cardData.cardName}");
+        targets.Add(leftmostDefender); // ✅ Only targets the Leftmost Defender
+        return targets; // Return immediately if Defender is found
+    }
+
+    // ✅ Step 2: No Defenders Found → Target All Cards in Player Area
+    foreach (var slot in playerSlots)
+    {
+        CardViz cardViz = slot.GetComponentInChildren<CardViz>();
+        CardInstance targetCard = cardViz?.GetCardInstance();
+        if (targetCard != null)
+        {
+            targets.Add(targetCard); // ✅ Add all cards in Player Area
+        }
+    }
+
+    if (targets.Count == 0)
+    {
+        Debug.Log($"🔥 [Boss] Direct Attack to Player! {boss.cardData.cardName} deals {boss.currentDamage} damage!");
+        HealthManager.Instance.DamagePlayer(boss.currentDamage);
+    }
+
+    return targets;
+}
+
 
 }

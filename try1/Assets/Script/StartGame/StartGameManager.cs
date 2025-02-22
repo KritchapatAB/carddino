@@ -58,7 +58,7 @@ public class StartGameManager : MonoBehaviour,ICardSelectionHandler
     }
 
     public void ContinueSelection()
-{
+    {
     if (selectingAttackers && selectedAttackers.Count == maxAttackers)
     {
         selectingAttackers = false;

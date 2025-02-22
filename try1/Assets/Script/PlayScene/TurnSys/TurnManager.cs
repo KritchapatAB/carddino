@@ -73,6 +73,7 @@ public class TurnManager : MonoBehaviour
     private IEnumerator HandleEnemyTurn()
     {
         Debug.Log($"Turn {turnCounter}: Enemy's turn starts.");
+
         yield return new WaitForSeconds(enemyTurnDelay);
 
         if (enemyManager != null)
@@ -85,8 +86,22 @@ public class TurnManager : MonoBehaviour
         }
 
         yield return new WaitForSeconds(enemyTurnDelay);
-        EndEnemyTurn();
+
+        // ✅ Skip Attack Phase but still Place Cards on Turn 0
+        if (turnCounter == 0)
+        {
+            Debug.Log($"Turn {turnCounter}: Enemy places cards but skips attack on the first turn.");
+            boardManager.MoveEnemyCardsToActiveArea(); // ✅ Move cards from Reserve to Active Area
+            boardManager.enemyManager.ReturnHandToDeck();
+            currentTurn = TurnState.PlayerTurn;
+            turnCounter++;
+            StartPlayerTurn();
+            yield break; // ✅ Exit the coroutine to skip the attack phase
+        }
+
+        EndEnemyTurn(); // ✅ Normal behavior for all other turns
     }
+
 
     public void EndEnemyTurn()
     {
@@ -152,13 +167,7 @@ private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> 
         GameObject attackerSlot = attackers[i];
         CardInstance attacker = null;
 
-        // ✅ Find the attacking card inside the attacker's slot
-        CardViz attackerCardViz = null;
-        foreach (Transform child in attackerSlot.transform)
-        {
-            attackerCardViz = child.GetComponent<CardViz>();
-            if (attackerCardViz != null) break; // Found the card, exit loop
-        }
+        CardViz attackerCardViz = attackerSlot.GetComponentInChildren<CardViz>();
 
         if (attackerCardViz == null)
         {
@@ -175,49 +184,77 @@ private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> 
 
         Debug.Log($"✅ Attacker Found: {attacker.cardData.cardName} (Slot {i})");
 
-        // ✅ Find the correct **defending card** based on turn
-        CardInstance target = boardManager.FindAttackTarget(attacker, defenders, i, isPlayerTurn);
+        // ✅ Change to List<CardInstance> for Boss targeting
+        List<CardInstance> targets = new List<CardInstance>();
 
-        if (target == null)
+        // Check if it's a Boss or Normal card
+        if (attacker.cardData.dinoType == "Boss")
+        {
+            targets = boardManager.FindBossAttackTarget(attacker, defenders);
+        }
+        else
+        {
+            // ✅ Single target for normal cards
+            CardInstance target = boardManager.FindNormalAttackTarget(attacker, defenders, i, isPlayerTurn);
+            if (target != null)
+            {
+                targets.Add(target); // Add single target to list for consistency
+            }
+        }
+
+        if (targets.Count == 0)
         {
             Debug.Log($"⚠️ No valid target for {attacker.cardData.cardName} in slot {i}. Skipping attack.");
             continue;
         }
 
-        Debug.Log($"🎯 {attacker.cardData.cardName} attacks {target.cardData.cardName}!");
-
-        // ✅ Execute Attack
-        if (attacker.cardData.dinoType == "Boss")
+        // ✅ Loop through all targets and attack each one
+        foreach (var target in targets)
         {
-            yield return StartCoroutine(HandleBossAttack(attacker, defenders, attackerType));
-        }
-        else
-        {
-            yield return StartCoroutine(HandleNormalAttack(attacker, defenders, i, attackerType));
-        }
+            Debug.Log($"🎯 {attacker.cardData.cardName} attacks {target.cardData.cardName}!");
 
-        yield return new WaitForSeconds(attackDelay);
+            if (attacker.cardData.dinoType == "Boss")
+            {
+                yield return StartCoroutine(HandleBossAttack(attacker, defenders, attackerType));
+            }
+            else
+            {
+                yield return StartCoroutine(HandleNormalAttack(attacker, defenders, i, attackerType));
+            }
+
+            yield return new WaitForSeconds(attackDelay);
+        }
     }
     Debug.Log("PA3");
 }
 
 
-
-
-    private IEnumerator HandleNormalAttack(CardInstance attacker, List<GameObject> defenders, int slotIndex, string attackerType)
+private IEnumerator HandleNormalAttack(CardInstance attacker, List<GameObject> defenders, int slotIndex, string attackerType)
     {
         bool isPlayerAttacking = (attackerType == "Player");
 
         // ✅ Clear target state to avoid overlap
         CardInstance target = null;
 
-        // ✅ Correctly targets Player or Enemy based on turn
-        target = boardManager.FindAttackTarget(attacker, defenders, slotIndex, isPlayerAttacking);
+        // ✅ Use the new FindNormalAttackTarget() method
+        target = boardManager.FindNormalAttackTarget(attacker, defenders, slotIndex, isPlayerAttacking);
 
         if (target != null)
         {
+            // ✅ Calculate Damage with special rule for Player attacking Boss
             int attackDamage = (attacker.cardData.dinoType == "Attacker") ? attacker.currentDamage + 1 : attacker.currentDamage;
-            Debug.Log($"[{attackerType} Turn] {attacker.cardData.cardName} attacks {target.cardData.cardName} for {attackDamage} damage!");
+
+            if (isPlayerAttacking && target.cardData.dinoType == "Boss")
+            {
+                attackDamage -= 1; // ✅ Player deals 1 less damage to Boss
+                if (attackDamage < 0) attackDamage = 0; // ✅ No negative damage
+                Debug.Log($"[{attackerType} Turn] {attacker.cardData.cardName} attacks {target.cardData.cardName} (Boss) for {attackDamage} damage (Reduced by 1)!");
+            }
+            else
+            {
+                Debug.Log($"[{attackerType} Turn] {attacker.cardData.cardName} attacks {target.cardData.cardName} for {attackDamage} damage!");
+            }
+
             target.TakeDamage(attackDamage);
 
             // ✅ Clear target state after attack
@@ -231,29 +268,40 @@ private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> 
         yield return null;
     }
 
+private IEnumerator HandleBossAttack(CardInstance boss, List<GameObject> defenders, string attackerType)
+{
+    bool isPlayerTurn = (attackerType == "Player");
 
+    // ✅ Use the updated FindBossAttackTarget() method
+    List<CardInstance> targets = boardManager.FindBossAttackTarget(boss, defenders);
 
-
-    private IEnumerator HandleBossAttack(CardInstance boss, List<GameObject> defenders, string attackerType)
+    if (targets.Count > 0)
     {
-        bool isPlayerTurn = (attackerType == "Player");
-
-        if (defenders.Count > 0)
+        // ✅ Boss attacks each target found
+        foreach (var target in targets)
         {
-            // ✅ Ensure Boss targets correctly based on turn
-            CardInstance target = boardManager.FindAttackTarget(boss, defenders, 0, isPlayerTurn);
-            int bossDamage = boss.currentDamage * 2; // ✅ Boss does double damage
+            Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} attacks {target.cardData.cardName}!");
 
-            Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} attacks {target.cardData.cardName} for {bossDamage} damage!");
+            // ✅ Boss Damage Calculation (No reduction, normal damage)
+            int bossDamage = boss.currentDamage;
             target.TakeDamage(bossDamage);
-        }
-        else
-        {
-            Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} damages all Player Cards!");
-        }
 
-        yield return null;
+            yield return new WaitForSeconds(0.5f); // Add delay between attacks for better visualization
+        }
     }
+    else
+    {
+        // ✅ If no targets, Boss attacks the player directly (handled in FindBossAttackTarget)
+        // Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} attacks the player directly!");
+    }
+
+    yield return null;
+}
+
+public int GetCurrentTurn()
+{
+    return turnCounter;
+}
 
 
 }

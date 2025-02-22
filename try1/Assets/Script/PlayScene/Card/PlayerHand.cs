@@ -6,7 +6,6 @@ public class PlayerHand : MonoBehaviour
     public List<Card> playerHand = new(); // Cards currently in hand
     public GameObject cardPrefab;
     public Transform handPanel;
-    public PlayerDeckManager playerDeckManager;
     public BoardManager boardManager;
 
     private List<GameObject> instantiatedCards = new();

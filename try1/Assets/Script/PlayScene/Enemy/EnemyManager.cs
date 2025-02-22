@@ -90,7 +90,11 @@ public class EnemyManager : MonoBehaviour
     {
         int placedCards = 0;
         int remainingCost = enemyCostLimit;
-        List<GameObject> availableSlots = boardManager.enemyReserveSlots.FindAll(slot => !slot.GetComponent<EnemyCardSlot>().IsOccupied());
+        
+        // Declare availableSlots locally
+        List<GameObject> availableSlots = boardManager.enemyReserveSlots.FindAll(slot => 
+            !slot.GetComponent<EnemyCardSlot>().IsOccupied()
+        );
 
         // Get strongest player cards
         boardManager.GetStrongestPlayerCards(out Card strongestAttacker, out Card strongestDefender);
@@ -115,6 +119,7 @@ public class EnemyManager : MonoBehaviour
             PlaceRandomCards(remainingCost, maxCardsPerTurn - placedCards, availableSlots);
         }
     }
+
 
     private Card DeterminePriorityTarget(Card strongestAttacker, Card strongestDefender, out string counterType)
     {
@@ -213,17 +218,50 @@ public class EnemyManager : MonoBehaviour
 
     private void PlaceRandomCards(int remainingCost, int slotsToFill, List<GameObject> availableSlots)
     {
-        while (slotsToFill > 0 && remainingCost > 0 && availableSlots.Count > 0)
-        {
-            Card selectedCard = GetRandomCardFromHand(remainingCost);
-            if (selectedCard == null) break;
+        Debug.Log($"[PlaceRandomCards] Starting - Remaining Cost: {remainingCost}, Slots to Fill: {slotsToFill}, Available Slots: {availableSlots.Count}");
 
-            PlaceCardInSlot(selectedCard, GetRandomSlot(availableSlots));
-            remainingCost -= selectedCard.cost;
-            slotsToFill--;
-            enemyHand.Remove(selectedCard);
+        while (slotsToFill > 0 && availableSlots.Count > 0)
+        {
+            // 🔥 Update available slots dynamically
+            availableSlots = boardManager.enemyReserveSlots.FindAll(slot => !slot.GetComponent<EnemyCardSlot>().IsOccupied());
+
+            Card selectedCard = GetRandomCardFromHand(remainingCost);
+
+            if (selectedCard == null)
+            {
+                Debug.LogWarning($"[PlaceRandomCards] No card found for cost: {remainingCost}. Stopping placement.");
+                break;
+            }
+
+            GameObject selectedSlot = GetRandomSlot(availableSlots);
+
+            if (selectedSlot == null)
+            {
+                Debug.LogWarning($"[PlaceRandomCards] No available slot found. Breaking loop.");
+                break;
+            }
+
+            Debug.Log($"[PlaceRandomCards] Placing {selectedCard.cardName} in {selectedSlot.name}");
+            
+            // Attempt to place the card
+            bool placedSuccessfully = PlaceCardInSlot(selectedCard, selectedSlot);
+
+            if (placedSuccessfully)
+            {
+                enemyHand.Remove(selectedCard);
+                remainingCost -= selectedCard.cost;
+                slotsToFill--;
+            }
+            else
+            {
+                Debug.LogWarning($"[PlaceRandomCards] Failed to place {selectedCard.cardName}. Returning to hand.");
+            }
         }
+
+        Debug.Log($"[PlaceRandomCards] Completed. Cards in hand: {enemyHand.Count}, Available Slots: {availableSlots.Count}");
     }
+
+
 
     private Card GetRandomCardFromHand(int remainingCost)
     {
@@ -231,14 +269,30 @@ public class EnemyManager : MonoBehaviour
         return affordableCards.Count > 0 ? affordableCards[UnityEngine.Random.Range(0, affordableCards.Count)] : null;
     }
 
-    private void PlaceCardInSlot(Card card, GameObject slot)
+    private bool PlaceCardInSlot(Card card, GameObject slot)
     {
+        Debug.Log($"[PlaceCardInSlot] Attempting to place {card.cardName} in {slot.name}");
+
         var enemySlot = slot.GetComponent<EnemyCardSlot>();
         if (enemySlot != null && !enemySlot.IsOccupied())
         {
             GameObject cardObject = InstantiateCardObject(card);
+
+            if (cardObject == null)
+            {
+                Debug.LogError($"[PlaceCardInSlot] Failed to instantiate card: {card.cardName}");
+                return false;
+            }
+
             enemySlot.PlaceCard(cardObject);
-            Debug.Log($"[Enemy AI] Placed {card.cardName} in {slot.name}");
+
+            Debug.Log($"[PlaceCardInSlot] Placed {card.cardName} in {slot.name}");
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning($"[PlaceCardInSlot] Slot {slot.name} is already occupied or invalid.");
+            return false;
         }
     }
 
