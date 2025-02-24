@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro; 
 
 public class TurnManager : MonoBehaviour
 {
@@ -17,6 +19,11 @@ public class TurnManager : MonoBehaviour
 
     public float attackDelay = 1.1f;
 
+    int ATTCount = 0;
+
+    [SerializeField] private Button attackButton;
+    [SerializeField] private TextMeshProUGUI turnCountText;
+
     void Start()
     {
         boardManager = FindObjectOfType<BoardManager>();
@@ -31,7 +38,13 @@ public class TurnManager : MonoBehaviour
         {
             enemyManager.Initialize();
         }
-
+        
+        if (attackButton != null)
+        {
+            attackButton.onClick.AddListener(OnAttackButtonClicked);
+            attackButton.interactable = false; // Disable at start
+        }
+        UpdateTurnDisplay();
         if (currentTurn == TurnState.EnemyTurn)
         {
             StartCoroutine(HandleEnemyTurn());
@@ -45,17 +58,24 @@ public class TurnManager : MonoBehaviour
     public void StartPlayerTurn()
     {
         currentTurn = TurnState.PlayerTurn;
+        UpdateTurnDisplay();
         Debug.Log($"Turn {turnCounter}: Player's turn starts.");
         hasDrawnCardThisTurn = false;
 
         boardManager.EnablePlayerControls();
         playerHand.TogglePlayerInteractions(true);
+
+        if (attackButton != null)
+        {
+            bool canAttack = hasDrawnCardThisTurn || boardManager.engagePlayerDeck.Count == 0;
+            attackButton.interactable = canAttack;
+        }
     }
 
     public void EndPlayerTurn()
     {
         Debug.Log($"Turn {turnCounter}: Player's turn ends.");
-
+        playerHand.DeselectCard();
         boardManager.DisableSacrificePhase();
         boardManager.DisablePlayerControls();
         playerHand.TogglePlayerInteractions(false);
@@ -66,6 +86,7 @@ public class TurnManager : MonoBehaviour
             // ✅ Now switch to Enemy Turn AFTER combat
             currentTurn = TurnState.EnemyTurn;
             turnCounter++;
+            UpdateTurnDisplay();
             StartCoroutine(HandleEnemyTurn());
         }));
     }
@@ -73,7 +94,6 @@ public class TurnManager : MonoBehaviour
     private IEnumerator HandleEnemyTurn()
     {
         Debug.Log($"Turn {turnCounter}: Enemy's turn starts.");
-
         yield return new WaitForSeconds(enemyTurnDelay);
 
         if (enemyManager != null)
@@ -105,9 +125,8 @@ public class TurnManager : MonoBehaviour
 
     public void EndEnemyTurn()
     {
+        
         Debug.Log($"Turn {turnCounter}: Enemy's turn ends.");
-
-        boardManager.MoveEnemyCardsToActiveArea();
         boardManager.enemyManager.ReturnHandToDeck();
 
         // ✅ Correct: First process attack phase, THEN switch turn
@@ -116,6 +135,7 @@ public class TurnManager : MonoBehaviour
             // ✅ Now switch to Player Turn AFTER combat
             currentTurn = TurnState.PlayerTurn;
             turnCounter++;
+            boardManager.MoveEnemyCardsToActiveArea();
             StartPlayerTurn();
         }));
     }
@@ -129,11 +149,29 @@ public class TurnManager : MonoBehaviour
     public void NotifyCardDrawn()
     {
         hasDrawnCardThisTurn = true;
+        if (attackButton != null)
+        {
+            bool canAttack = hasDrawnCardThisTurn || boardManager.engagePlayerDeck.Count == 0;
+            attackButton.interactable = canAttack;
+        }
     }
 
     public void OnAttackButtonClicked()
     {
-        Debug.Log("Attack button clicked. Ending player's turn.");
+        if (!hasDrawnCardThisTurn && boardManager.engagePlayerDeck.Count > 0)
+        {
+            Debug.LogWarning("Cannot attack without drawing a card first or engage deck is not empty!");
+            return;
+        }
+        
+        if (attackButton != null)
+        {
+            attackButton.interactable = false;
+        }
+    
+        ATTCount = ATTCount +1;
+        Debug.Log($"Attack button clicked. Ending player's turn{ATTCount}.");
+        
         EndPlayerTurn();
     }
 
@@ -157,76 +195,76 @@ public class TurnManager : MonoBehaviour
     }
 
 
-private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> defenders, string attackerType)
-{
-    Debug.Log("PA1");
-    bool isPlayerTurn = attackerType == "Player";
-
-    for (int i = 0; i < attackers.Count; i++)
+    private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> defenders, string attackerType)
     {
-        GameObject attackerSlot = attackers[i];
-        CardInstance attacker = null;
+        Debug.Log("PA1");
+        bool isPlayerTurn = attackerType == "Player";
 
-        CardViz attackerCardViz = attackerSlot.GetComponentInChildren<CardViz>();
-
-        if (attackerCardViz == null)
+        for (int i = 0; i < attackers.Count; i++)
         {
-            Debug.LogWarning($"⚠️ No CardViz found in attacker slot: {attackerSlot.name}");
-            continue;
-        }
+            GameObject attackerSlot = attackers[i];
+            CardInstance attacker = null;
 
-        attacker = attackerCardViz.GetCardInstance();
-        if (attacker == null)
-        {
-            Debug.LogWarning($"⚠️ CardInstance is NULL for {attackerSlot.name}!");
-            continue;
-        }
+            CardViz attackerCardViz = attackerSlot.GetComponentInChildren<CardViz>();
 
-        Debug.Log($"✅ Attacker Found: {attacker.cardData.cardName} (Slot {i})");
-
-        // ✅ Change to List<CardInstance> for Boss targeting
-        List<CardInstance> targets = new List<CardInstance>();
-
-        // Check if it's a Boss or Normal card
-        if (attacker.cardData.dinoType == "Boss")
-        {
-            targets = boardManager.FindBossAttackTarget(attacker, defenders);
-        }
-        else
-        {
-            // ✅ Single target for normal cards
-            CardInstance target = boardManager.FindNormalAttackTarget(attacker, defenders, i, isPlayerTurn);
-            if (target != null)
+            if (attackerCardViz == null)
             {
-                targets.Add(target); // Add single target to list for consistency
+                Debug.LogWarning($"⚠️ No CardViz found in attacker slot: {attackerSlot.name}");
+                continue;
             }
-        }
 
-        if (targets.Count == 0)
-        {
-            Debug.Log($"⚠️ No valid target for {attacker.cardData.cardName} in slot {i}. Skipping attack.");
-            continue;
-        }
+            attacker = attackerCardViz.GetCardInstance();
+            if (attacker == null)
+            {
+                Debug.LogWarning($"⚠️ CardInstance is NULL for {attackerSlot.name}!");
+                continue;
+            }
 
-        // ✅ Loop through all targets and attack each one
-        foreach (var target in targets)
-        {
-            Debug.Log($"🎯 {attacker.cardData.cardName} attacks {target.cardData.cardName}!");
+            Debug.Log($"✅ Attacker Found: {attacker.cardData.cardName} (Slot {i})");
 
+            // ✅ Change to List<CardInstance> for Boss targeting
+            List<CardInstance> targets = new List<CardInstance>();
+
+            // Check if it's a Boss or Normal card
             if (attacker.cardData.dinoType == "Boss")
             {
-                yield return StartCoroutine(HandleBossAttack(attacker, defenders, attackerType));
+                targets = boardManager.FindBossAttackTarget(attacker, defenders);
             }
             else
             {
-                yield return StartCoroutine(HandleNormalAttack(attacker, defenders, i, attackerType));
+                // ✅ Single target for normal cards
+                CardInstance target = boardManager.FindNormalAttackTarget(attacker, defenders, i, isPlayerTurn);
+                if (target != null)
+                {
+                    targets.Add(target); // Add single target to list for consistency
+                }
             }
 
-            yield return new WaitForSeconds(attackDelay);
+            if (targets.Count == 0)
+            {
+                Debug.Log($"⚠️ No valid target for {attacker.cardData.cardName} in slot {i}. Skipping attack.");
+                continue;
+            }
+
+            // ✅ Loop through all targets and attack each one
+            foreach (var target in targets)
+            {
+                Debug.Log($"🎯 {attacker.cardData.cardName} attacks {target.cardData.cardName}!");
+
+                if (attacker.cardData.dinoType == "Boss")
+                {
+                    yield return StartCoroutine(HandleBossAttack(attacker, defenders, attackerType));
+                }
+                else
+                {
+                    yield return StartCoroutine(HandleNormalAttack(attacker, defenders, i, attackerType));
+                }
+
+                yield return new WaitForSeconds(attackDelay);
+            }
         }
+        Debug.Log("PA3");
     }
-    Debug.Log("PA3");
-}
 
 
 private IEnumerator HandleNormalAttack(CardInstance attacker, List<GameObject> defenders, int slotIndex, string attackerType)
@@ -303,5 +341,23 @@ public int GetCurrentTurn()
     return turnCounter;
 }
 
+private void UpdateTurnDisplay()
+{
+    if (turnCountText != null)
+    {
+        if (currentTurn == TurnState.PlayerTurn)
+        {
+            turnCountText.text = "Player";
+        }
+        else if (currentTurn == TurnState.EnemyTurn)
+        {
+            turnCountText.text = "Enemy";
+        }
+    }
+    else
+    {
+        Debug.LogWarning("Turn Count Text is not assigned in the Inspector.");
+    }
+}
 
 }

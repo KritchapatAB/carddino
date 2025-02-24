@@ -319,7 +319,7 @@ public class EnemyManager : MonoBehaviour
 
     private bool ShouldCounterPlayer()
     {
-        return Random.value < 0.9f;
+        return Random.value < 0.5f;
     }
 
     public void ReturnHandToDeck()

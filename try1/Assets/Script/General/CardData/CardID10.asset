@@ -16,8 +16,7 @@ MonoBehaviour:
   cardName: Brachiosaurus
   cardClass: {fileID: 21300000, guid: 72c1bc3d3c00fdc42980cc837d01deea, type: 3}
   cost: 4
-  damage: 2
-  health: 10
+  damage: 1
+  health: 14
   dinoType: Defender
   dinoImage: {fileID: 21300000, guid: 330218b66416b5541a941704d1b9b21f, type: 3}
-  cardType: 2

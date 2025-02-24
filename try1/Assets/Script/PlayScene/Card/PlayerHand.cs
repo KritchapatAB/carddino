@@ -76,8 +76,9 @@ public class PlayerHand : MonoBehaviour
 
         if (playerHand.Count >= maxHandSize)
         {
-            Debug.LogWarning("Cannot draw more cards. Hand is full!");
-            return;
+            Debug.LogWarning("Hand is full! Removing one card to make space.");
+            int randomIndex = Random.Range(0, playerHand.Count);
+            RemoveCardFromHand(randomIndex);
         }
 
         // Use the deck to draw a card
@@ -238,4 +239,23 @@ public class PlayerHand : MonoBehaviour
         return selectedCard;
     }
 
+    private void RemoveCardFromHand(int index)
+    {
+        if (index < 0 || index >= playerHand.Count)
+        {
+            Debug.LogWarning("Invalid card index to remove.");
+            return;
+        }
+
+        // ✅ Remove the card data from playerHand list
+        Card removedCard = playerHand[index];
+        playerHand.RemoveAt(index);
+
+        // ✅ Find and destroy the corresponding GameObject
+        GameObject cardToRemove = instantiatedCards[index];
+        instantiatedCards.RemoveAt(index);
+        Destroy(cardToRemove);
+
+        Debug.Log($"Removed card from hand: {removedCard.cardName}");
+    }
 }

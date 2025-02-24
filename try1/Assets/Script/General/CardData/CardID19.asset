@@ -16,8 +16,7 @@ MonoBehaviour:
   cardName: Trex
   cardClass: {fileID: 21300000, guid: 460f31cba1b4f7145abf29a8436f49fd, type: 3}
   cost: 4
-  damage: 5
-  health: 6
+  damage: 7
+  health: 5
   dinoType: Attacker
   dinoImage: {fileID: 21300000, guid: 39991b621833add45bc3b2bef5715501, type: 3}
-  cardType: 1

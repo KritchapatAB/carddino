@@ -64,7 +64,7 @@ public class CardViz : MonoBehaviour
     {
         healthText.color = Color.red;
         yield return new WaitForSeconds(0.5f);
-        healthText.color = Color.white;
+        healthText.color = Color.black;
     }
 
     public CardInstance GetCardInstance()

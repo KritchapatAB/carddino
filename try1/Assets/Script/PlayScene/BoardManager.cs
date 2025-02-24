@@ -690,5 +690,4 @@ public List<CardInstance> FindBossAttackTarget(CardInstance boss, List<GameObjec
     return targets;
 }
 
-
 }

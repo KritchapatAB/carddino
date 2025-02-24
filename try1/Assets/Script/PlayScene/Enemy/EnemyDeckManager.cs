@@ -40,9 +40,8 @@ public class EnemyDeckManager : MonoBehaviour
         // Apply Challenge Modifiers (Boss fights do NOT use these)
         if (stageConfig.stageType == StageType.Challenge)
         {
-            ApplyChallengeModifiers();
+             ApplyChallengeModifiers(stageConfig);
         }
-
         TrimDeckToMaxSize(stageConfig.maxDeckSize);
         Debug.Log($"Enemy deck initialized with {enemyDeck.Count} cards.");
     }
@@ -78,16 +77,19 @@ public class EnemyDeckManager : MonoBehaviour
         return bossAndSpecificCardSchedule.ContainsKey(turn) ? bossAndSpecificCardSchedule[turn] : new List<Card>();
     }
 
-    private void ApplyChallengeModifiers()
+    private void ApplyChallengeModifiers(StageConfiguration stageConfig)
     {
         for (int i = 0; i < enemyDeck.Count; i++)
         {
             Card modifiedCard = new Card(enemyDeck[i]); // Avoid modifying original database card
-            modifiedCard.health += 2;
-            modifiedCard.damage += 1;
+            
+            // 🔥 Use Bonus Health and Damage from Stage Configuration
+            modifiedCard.health += stageConfig.bonusHealth;
+            modifiedCard.damage += stageConfig.bonusDamage;
+            
             enemyDeck[i] = modifiedCard;
         }
-        Debug.Log("Applied Challenge modifiers: +2 Health, +1 Damage.");
+        Debug.Log($"Applied Challenge modifiers: +{stageConfig.bonusHealth} Health, +{stageConfig.bonusDamage} Damage.");
     }
 
     private void FillDeckWithRandomCards(string cardType, int maxCount, int minCost, int maxCost)

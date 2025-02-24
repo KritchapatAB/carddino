@@ -105,7 +105,7 @@ public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPoin
         if (highlightOverlay != null)
         {
             highlightOverlay.enabled = true;
-            highlightOverlay.color = Color.yellow; // Indicate it's sacrificial
+            highlightOverlay.color = Color.white; // Indicate it's sacrificial
         }
 
         transform.localScale = originalScale * 0.9f;
@@ -134,7 +134,7 @@ public class CardInteractionHandler : MonoBehaviour, IPointerEnterHandler, IPoin
         }
 
         // Update the highlight color to "sacrifice-able"
-        highlightOverlay.color = Color.yellow; 
+        highlightOverlay.color = Color.white; 
         highlightOverlay.enabled = true; // Ensure the overlay is visible
 
         // Revert to "sacrifice-able" scaling

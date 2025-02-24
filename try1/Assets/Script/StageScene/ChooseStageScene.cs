@@ -125,5 +125,10 @@ private List<StageConfiguration> GetValidStages(int currentStage)
     {
         SceneManager.LoadScene("ShopStage");
     }
+
+    public void StagePlayer()
+    {
+        SceneManager.LoadScene("PlayerDeckStage");
+    }
 }
 

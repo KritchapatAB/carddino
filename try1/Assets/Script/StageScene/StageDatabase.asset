@@ -21,7 +21,7 @@ MonoBehaviour:
     maxDefenders: 2
     maxNormals: 3
     minAttackerCost: 1
-    maxAttackerCost: 2
+    maxAttackerCost: 1
     minDefenderCost: 1
     maxDefenderCost: 2
     minNormalCost: 0
@@ -29,7 +29,23 @@ MonoBehaviour:
     specificCards: []
     bonusHealth: 0
     bonusDamage: 0
-  - stageName: Easy(Challenge)
+  - stageName: Easy
+    stageType: 0
+    difficulty: 0
+    maxDeckSize: 7
+    maxAttackers: 2
+    maxDefenders: 2
+    maxNormals: 3
+    minAttackerCost: 1
+    maxAttackerCost: 1
+    minDefenderCost: 1
+    maxDefenderCost: 2
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0
+  - stageName: Easy(Chal +2 Health)
     stageType: 1
     difficulty: 0
     maxDeckSize: 7
@@ -37,34 +53,47 @@ MonoBehaviour:
     maxDefenders: 2
     maxNormals: 3
     minAttackerCost: 1
-    maxAttackerCost: 2
+    maxAttackerCost: 1
     minDefenderCost: 1
     maxDefenderCost: 2
     minNormalCost: 0
     maxNormalCost: 0
     specificCards: []
     bonusHealth: 2
+    bonusDamage: 0
+  - stageName: Easy(Chal +1 Dmg)
+    stageType: 1
+    difficulty: 0
+    maxDeckSize: 7
+    maxAttackers: 2
+    maxDefenders: 2
+    maxNormals: 3
+    minAttackerCost: 1
+    maxAttackerCost: 1
+    minDefenderCost: 1
+    maxDefenderCost: 2
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
     bonusDamage: 1
   - stageName: Boss1
     stageType: 2
     difficulty: 0
-    maxDeckSize: 4
+    maxDeckSize: 3
     maxAttackers: 0
-    maxDefenders: 1
+    maxDefenders: 2
     maxNormals: 0
     minAttackerCost: 0
     maxAttackerCost: 0
-    minDefenderCost: 3
-    maxDefenderCost: 3
+    minDefenderCost: 2
+    maxDefenderCost: 2
     minNormalCost: 0
     maxNormalCost: 0
     specificCards:
     - cardId: 19
       quantity: 1
-      turn: 4
-    - cardId: 19
-      quantity: 1
-      turn: 0
+      turn: 2
     bonusHealth: 0
     bonusDamage: 0
   - stageName: Boss2
@@ -102,7 +131,7 @@ MonoBehaviour:
     specificCards:
     - cardId: 20
       quantity: 1
-      turn: 2
+      turn: 6
     bonusHealth: 0
     bonusDamage: 0
   - stageName: ChooseCard
@@ -121,6 +150,38 @@ MonoBehaviour:
     specificCards: []
     bonusHealth: 2
     bonusDamage: 1
+  - stageName: ChooseCard
+    stageType: 4
+    difficulty: 0
+    maxDeckSize: 0
+    maxAttackers: 0
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 0
+    maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 2
+    bonusDamage: 1
+  - stageName: Shop
+    stageType: 3
+    difficulty: 0
+    maxDeckSize: 0
+    maxAttackers: 0
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 0
+    maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0
   - stageName: Shop
     stageType: 3
     difficulty: 0
@@ -140,12 +201,12 @@ MonoBehaviour:
   - stageName: Normal
     stageType: 0
     difficulty: 1
-    maxDeckSize: 9
+    maxDeckSize: 8
     maxAttackers: 3
     maxDefenders: 3
-    maxNormals: 3
+    maxNormals: 2
     minAttackerCost: 1
-    maxAttackerCost: 3
+    maxAttackerCost: 2
     minDefenderCost: 1
     maxDefenderCost: 3
     minNormalCost: 0
@@ -153,53 +214,85 @@ MonoBehaviour:
     specificCards: []
     bonusHealth: 0
     bonusDamage: 0
-  - stageName: Normal(Challenge)
+  - stageName: Normal(Chal +2 Health)
     stageType: 1
     difficulty: 1
-    maxDeckSize: 9
+    maxDeckSize: 8
     maxAttackers: 3
     maxDefenders: 3
-    maxNormals: 3
+    maxNormals: 2
     minAttackerCost: 1
-    maxAttackerCost: 3
+    maxAttackerCost: 2
     minDefenderCost: 1
     maxDefenderCost: 3
     minNormalCost: 0
     maxNormalCost: 0
     specificCards: []
     bonusHealth: 2
+    bonusDamage: 0
+  - stageName: Normal(Chal +1 Dmg)
+    stageType: 1
+    difficulty: 1
+    maxDeckSize: 8
+    maxAttackers: 3
+    maxDefenders: 3
+    maxNormals: 2
+    minAttackerCost: 1
+    maxAttackerCost: 2
+    minDefenderCost: 1
+    maxDefenderCost: 3
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
     bonusDamage: 1
   - stageName: Hard
     stageType: 0
     difficulty: 2
-    maxDeckSize: 11
-    maxAttackers: 4
-    maxDefenders: 4
+    maxDeckSize: 9
+    maxAttackers: 3
+    maxDefenders: 3
     maxNormals: 3
     minAttackerCost: 1
-    maxAttackerCost: 4
+    maxAttackerCost: 3
     minDefenderCost: 2
-    maxDefenderCost: 4
+    maxDefenderCost: 3
     minNormalCost: 0
     maxNormalCost: 0
     specificCards: []
     bonusHealth: 0
     bonusDamage: 0
-  - stageName: Hard(Challenge)
+  - stageName: Hard(Chal +2 Health)
     stageType: 1
     difficulty: 2
-    maxDeckSize: 11
-    maxAttackers: 4
-    maxDefenders: 4
+    maxDeckSize: 9
+    maxAttackers: 3
+    maxDefenders: 3
     maxNormals: 3
     minAttackerCost: 1
-    maxAttackerCost: 4
+    maxAttackerCost: 3
     minDefenderCost: 2
-    maxDefenderCost: 4
+    maxDefenderCost: 3
     minNormalCost: 0
     maxNormalCost: 0
     specificCards: []
     bonusHealth: 2
+    bonusDamage: 0
+  - stageName: Hard(Chal +1 Dmg)
+    stageType: 1
+    difficulty: 2
+    maxDeckSize: 9
+    maxAttackers: 3
+    maxDefenders: 3
+    maxNormals: 3
+    minAttackerCost: 1
+    maxAttackerCost: 3
+    minDefenderCost: 2
+    maxDefenderCost: 3
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
     bonusDamage: 1
   - stageName: Shop
     stageType: 3
@@ -219,7 +312,55 @@ MonoBehaviour:
     bonusDamage: 0
   - stageName: Shop
     stageType: 3
+    difficulty: 1
+    maxDeckSize: 0
+    maxAttackers: 0
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 0
+    maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0
+  - stageName: Shop
+    stageType: 3
     difficulty: 2
+    maxDeckSize: 0
+    maxAttackers: 0
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 0
+    maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0
+  - stageName: Shop
+    stageType: 3
+    difficulty: 2
+    maxDeckSize: 0
+    maxAttackers: 0
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 0
+    maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0
+  - stageName: ChooseCard
+    stageType: 4
+    difficulty: 1
     maxDeckSize: 0
     maxAttackers: 0
     maxDefenders: 0
@@ -265,7 +406,23 @@ MonoBehaviour:
     specificCards: []
     bonusHealth: 0
     bonusDamage: 0
-  - stageName: Temu
+  - stageName: ChooseCard
+    stageType: 4
+    difficulty: 2
+    maxDeckSize: 0
+    maxAttackers: 0
+    maxDefenders: 0
+    maxNormals: 0
+    minAttackerCost: 0
+    maxAttackerCost: 0
+    minDefenderCost: 0
+    maxDefenderCost: 0
+    minNormalCost: 0
+    maxNormalCost: 0
+    specificCards: []
+    bonusHealth: 0
+    bonusDamage: 0
+  - stageName: GamerX
     stageType: 0
     difficulty: 2
     maxDeckSize: 10

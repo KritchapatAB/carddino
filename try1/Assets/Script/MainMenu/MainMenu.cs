@@ -7,10 +7,31 @@ public class MainMenu : MonoBehaviour
 {
   
     public Button continueButton; 
+    public Button settingsButton;
+    public GameObject settingsPopupCanvas;
+
+    private SettingsPopup settingsPopup;
+
+    public SFXManager SFXManager; 
 
     private void Start()
     {
         UpdateContinueButtonState();
+        settingsPopup = FindObjectOfType<SettingsPopup>();
+        if (settingsPopup != null)
+        {   
+            Debug.Log("Load trigger");
+            settingsPopup.InitializeSettings();
+            
+        }
+        settingsPopupCanvas.SetActive(false);
+        settingsButton.onClick.AddListener(OpenSettings);
+    }
+
+     private void OpenSettings()
+    {
+        settingsPopupCanvas.SetActive(true);
+        SFXManager.Instance.PlayButtonClick();
     }
 
     public void PlayGame()
@@ -49,6 +70,10 @@ public class MainMenu : MonoBehaviour
             continueButton.gameObject.SetActive(true); // Optionally show it
             Debug.Log("Valid save file found. Continue button enabled.");
         }
+    }
+    public void Quit()
+    {
+        Application.Quit();
     }
 }
 

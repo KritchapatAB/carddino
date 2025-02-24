@@ -53,7 +53,7 @@ public class StageConfiguration
         }
         else if (stageType == StageType.Boss)
         {
-            bonusHealth = 0; // No extra health for bosses
+            bonusHealth = 0; 
             bonusDamage = 0;
         }
         else
