@@ -139,7 +139,7 @@ public class HealthManager : MonoBehaviour
         quitButton.gameObject.SetActive(false);
         skipBattleButton.gameObject.SetActive(false);
 
-        Invoke(nameof(HandleLoseCondition), 2.0f);
+        // Invoke(nameof(HandleLoseCondition), 2.0f);
     }
 
     public void HandleWinCondition()
