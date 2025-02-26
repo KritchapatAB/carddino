@@ -144,6 +144,7 @@ public class SettingsPopup : MonoBehaviour
         else
         {
             audioMixer.SetFloat("SFXVolume", Mathf.Log10(volume) * 20);
+            
         }
     }
 

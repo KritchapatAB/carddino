@@ -30,8 +30,8 @@ public class MainMenu : MonoBehaviour
 
      private void OpenSettings()
     {
+        SFXManager.Instance.PlayTestSFX();
         settingsPopupCanvas.SetActive(true);
-        SFXManager.Instance.PlayButtonClick();
     }
 
     public void PlayGame()

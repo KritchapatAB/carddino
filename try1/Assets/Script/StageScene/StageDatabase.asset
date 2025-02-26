@@ -422,19 +422,3 @@ MonoBehaviour:
     specificCards: []
     bonusHealth: 0
     bonusDamage: 0
-  - stageName: GamerX
-    stageType: 0
-    difficulty: 2
-    maxDeckSize: 10
-    maxAttackers: 10
-    maxDefenders: 0
-    maxNormals: 0
-    minAttackerCost: 4
-    maxAttackerCost: 4
-    minDefenderCost: 0
-    maxDefenderCost: 0
-    minNormalCost: 0
-    maxNormalCost: 0
-    specificCards: []
-    bonusHealth: 0
-    bonusDamage: 0

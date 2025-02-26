@@ -65,8 +65,6 @@ public class GameManager : MonoBehaviour
     public void ResetSaveData()
     {
         SaveManager.DeleteSave();
-        // CurrentSaveData = null;
-        // saveDataLoaded = false;
     }
 
     public void AddToPlayerDeck(int cardId) => CurrentSaveData.playerDeckIds.Add(cardId);
@@ -91,7 +89,6 @@ public class GameManager : MonoBehaviour
         AdvanceStage();
         SaveData();
         LastStageChoicesClear();
-        // SceneManager.LoadScene("ChooseStage");
     }
 
     public void PlayerWinChallenge()

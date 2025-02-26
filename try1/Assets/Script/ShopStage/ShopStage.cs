@@ -95,7 +95,6 @@ public class ShopStage : MonoBehaviour, ICardSelectionHandler
     public void ConfirmSelection()
     {
         var saveData = GameManager.Instance.CurrentSaveData;
-
         // Prevent confirmation if overspending
         if (saveData.money - totalCost < 0)
         {

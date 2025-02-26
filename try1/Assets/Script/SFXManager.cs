@@ -10,6 +10,7 @@ public class SFXManager : MonoBehaviour
 
     [Header("SFX Clips")]
     [SerializeField] private AudioClip buttonClickSFX;
+    [SerializeField] private AudioClip SFXtest;
 
     private AudioSource audioSource;
 
@@ -42,10 +43,15 @@ public class SFXManager : MonoBehaviour
         }
     }
 
-    // 🎵 Public Method for Button Click
+    // 🔊 Play Button Click SFX
     public void PlayButtonClick()
     {
-        Debug.Log("SFX trigger");
         PlaySFX(buttonClickSFX);
+    }
+
+    // 🔊 Play Test SFX
+    public void PlayTestSFX()
+    {
+        PlaySFX(SFXtest);
     }
 }
