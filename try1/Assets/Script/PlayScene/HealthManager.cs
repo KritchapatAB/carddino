@@ -18,16 +18,20 @@ public class HealthManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI winText;
 
     [SerializeField] private Button continueButton;
-    [SerializeField] private Button mainMenuButton;
-    [SerializeField] private Button skipBattleButton;
     [SerializeField] private Button quitButton;
     [SerializeField] private Button clearButton;
+    [SerializeField] private Button bossButton;
+    [SerializeField] private Button getCardButton;
+    [SerializeField] private Button deleteCardButton;
+    [SerializeField] private Button shopButton;
 
     private GameManager gameManager;
     private BoardManager boardManager;
     private TurnManager turnManager;
     private EnemyDeckManager enemyDeckManager;
     private EnemyManager enemyManager;
+
+    public PlayerSaveData CurrentSaveData { get; private set; }
 
     public static HealthManager Instance { get; private set; }
 
@@ -49,14 +53,6 @@ public class HealthManager : MonoBehaviour
         winPopup.SetActive(false);
         clearPopup.SetActive(false);
         losePopup.SetActive(false);
-
-        // 🔥 Add Listeners to Buttons
-        // continueButton.onClick.AddListener(HandleWinCondition);
-        // quitButton.onClick.AddListener(QuitGame);
-        // skipBattleButton.onClick.AddListener(SkipBattle);
-        // clearButton.onClick.AddListener(HandleClearCondition);
-
-        skipBattleButton.gameObject.SetActive(false);
 
         gameManager = FindObjectOfType<GameManager>();
         boardManager = FindObjectOfType<BoardManager>();
@@ -100,11 +96,11 @@ public class HealthManager : MonoBehaviour
 
     private void ShowWinPopup()
     {
-        int calStage = GameManager.Instance.CurrentSaveData.currentStage;
-        int nextStage = calStage + 0;
+        TurnManager.Instance.isPaused = true;
+        int nextStage = GameManager.Instance.CurrentSaveData.currentStage + 0;
 
         Debug.Log($"nextStage:{nextStage}");
-        if (nextStage == 27)
+        if (nextStage == 12)
         {
             ShowClearPopup();
             return;
@@ -112,87 +108,75 @@ public class HealthManager : MonoBehaviour
 
         winPopup.SetActive(true);
         quitButton.gameObject.SetActive(false);
-        skipBattleButton.gameObject.SetActive(false);
-
-        if (GameManager.Instance.CurrentStage.stageType == StageType.Challenge)
-        {
-            winText.text = "+4";
-        }
-        else
-        {
-            winText.text = "+2";
-        }
-        Debug.Log($"(checker: {StageType.Challenge})");
+        winText.text = "+2";
+        Debug.Log($"(checker: {StageType.Normal})");
         continueButton.gameObject.SetActive(true);
+
+        UpdateWinButtons();
+    }
+
+
+    private void UpdateWinButtons()
+    {
+        // Show all options
+        shopButton.gameObject.SetActive(true);
+        getCardButton.gameObject.SetActive(true);
+        deleteCardButton.gameObject.SetActive(true);
+        continueButton.gameObject.SetActive(true);
+
+        // Add listeners to each button
+        shopButton.onClick.RemoveAllListeners();
+        getCardButton.onClick.RemoveAllListeners();
+        deleteCardButton.onClick.RemoveAllListeners();
+        continueButton.onClick.RemoveAllListeners();
+
+        shopButton.onClick.AddListener(() => GoToShop());
+        getCardButton.onClick.AddListener(() => GoToGetCard());
+        deleteCardButton.onClick.AddListener(() => GoToDeleteCard());
+        continueButton.onClick.AddListener(() =>
+        {
+            GameManager.Instance.AdvanceStage();
+            GameManager.Instance.AddMoney(2);
+            GameManager.Instance.ContinueGame();
+            TurnManager.Instance.isPaused = false;
+        });
+    }
+
+    private void GoToShop()
+    {
+        SceneManager.LoadScene("ShopStage");
+    }
+
+    private void GoToGetCard()
+    {
+        SceneManager.LoadScene("ChooseCard");
+    }
+
+    private void GoToDeleteCard()
+    {
+        SceneManager.LoadScene("DeleteCard");
     }
 
     private void ShowClearPopup()
     {
+        TurnManager.Instance.isPaused = true;
         clearPopup.SetActive(true);
         quitButton.gameObject.SetActive(false);
-        skipBattleButton.gameObject.SetActive(false);
+        GameManager.Instance.ResetSaveData();
     }
 
     private void ShowLosePopup()
     {
+        TurnManager.Instance.isPaused = true;
         losePopup.SetActive(true);
         quitButton.gameObject.SetActive(false);
-        skipBattleButton.gameObject.SetActive(false);
-
-        // Invoke(nameof(HandleLoseCondition), 2.0f);
+        GameManager.Instance.ResetSaveData();
     }
 
-    public void HandleWinCondition()
-    {
-        if (GameManager.Instance.CurrentStage.stageType == StageType.Challenge)
-        {
-            Debug.Log("Player Wins Challenge!");
-            gameManager.PlayerWinChallenge();
-            SceneManager.LoadScene("ChooseStage");
-        }
-        else
-        {
-            Debug.Log("Player Wins Normal Stage!");
-            gameManager.PlayerWin();
-            SceneManager.LoadScene("ChooseStage");
-        }
-    }
-
-    public void HandleLoseCondition()
-    {
-        gameManager.ResetSaveData();
-        SceneManager.LoadScene("MainMenu");
-    }
-
-    public void HandleClearCondition()
-    {
-        gameManager.ResetSaveData();
-        SceneManager.LoadScene("MainMenu");
-    }
 
     public void QuitGame()
     {
-        Debug.Log("Returning to ChooseStage...");
-        SceneManager.LoadScene("ChooseStage");
-    }
-
-    public void SkipBattle()
-    {
-        Debug.Log("Skipping Battle... Calculating Result...");
-
-        winPopup.SetActive(true);
-        skipBattleButton.gameObject.SetActive(false);
-
-        if (playerHealth > enemyHealth)
-        {
-            winText.text = "You Win!";
-            Invoke(nameof(HandleWinCondition), 2.0f);
-        }
-        else
-        {
-            winText.text = "You Lose!";
-            Invoke(nameof(HandleLoseCondition), 2.0f);
-        }
+        SceneManager.LoadScene("Mainmenu");
     }
 
     public void CheckWinLoseCondition()
@@ -213,11 +197,6 @@ public class HealthManager : MonoBehaviour
         {
             ShowLosePopup();
             return;
-        }
-
-        if (ShouldShowSkipBattle())
-        {
-            skipBattleButton.gameObject.SetActive(true);
         }
     }
 

@@ -8,10 +8,11 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public PlayerSaveData CurrentSaveData { get; private set; }
     public StageConfiguration CurrentStage { get; private set; }
-    private bool saveDataLoaded = false;
-
     public StageDatabase stageDatabase;
     public List<StageConfiguration> LastStageChoices { get; private set; } = new();
+
+    private bool saveDataLoaded = false;
+    private Difficulty currentDifficulty = Difficulty.Easy;
 
     private void Awake()
     {
@@ -37,66 +38,153 @@ public class GameManager : MonoBehaviour
     public void SaveData()
     {
         if (CurrentSaveData == null) return;
-
-        CurrentSaveData.lastStageNames.Clear();
-        LastStageChoices.ForEach(stage => CurrentSaveData.lastStageNames.Add(stage.stageName));
         SaveManager.SaveGame(CurrentSaveData);
     }
 
     public void LoadSaveData()
     {
         if (saveDataLoaded) return;
-
         CurrentSaveData = SaveManager.LoadGame(null);
         if (CurrentSaveData == null) return;
-
-        LastStageChoices.Clear();
-        if (stageDatabase != null && CurrentSaveData.lastStageNames.Count > 0)
-        {
-            CurrentSaveData.lastStageNames.ForEach(stageName =>
-            {
-                StageConfiguration stage = stageDatabase.stageConfigs.Find(s => s.stageName == stageName);
-                if (stage != null) LastStageChoices.Add(stage);
-            });
-        }
         saveDataLoaded = true;
     }
 
     public void ResetSaveData()
     {
         SaveManager.DeleteSave();
+        CurrentSaveData = new PlayerSaveData
+        {
+            currentStage = 1,
+            money = 0,
+            playerDeckIds = new List<int>(),
+            isSaveValid = false
+        };
+        saveDataLoaded = false; // Reset the flag to allow reloading on new game
+        Debug.Log("Save data has been reset.");
+        ResetCurrentStage();
     }
 
     public void AddToPlayerDeck(int cardId) => CurrentSaveData.playerDeckIds.Add(cardId);
     public void RemoveFromPlayerDeck(int cardId) => CurrentSaveData.playerDeckIds.Remove(cardId);
-    public void AdvanceStage() => CurrentSaveData.currentStage++;
     public void AddMoney(int amount) => CurrentSaveData.money += amount;
     public void SubtractMoney(int amount) => CurrentSaveData.money -= amount;
-    public void LastStageChoicesClear() => LastStageChoices.Clear();
-    public void SetCurrentStage(StageConfiguration stage) => CurrentStage = stage;
-    public void SetLastStageChoices(List<StageConfiguration> stages) => LastStageChoices = new List<StageConfiguration>(stages);
-    public List<StageConfiguration> GetLastStageChoices() => LastStageChoices.Count > 0 ? new(LastStageChoices) : null;
+    public void ClearMoney() => CurrentSaveData.money = 0;
+
     public void ResetCurrentStage()
     {
         CurrentSaveData.currentStage = 1;
     }
-    public void ClearMoney() => CurrentSaveData.money = 0;
-    
+
+    public void AdvanceStage()
+    {
+        CurrentSaveData.currentStage++;
+        SaveData();
+    }
+
+    public void SetCurrentStage(StageConfiguration stageConfig)
+    {
+        CurrentStage = stageConfig;
+    }
+
+    public void ContinueGame()
+    {
+        Debug.Log("Continuing Game...");
+        int currentStage = CurrentSaveData.currentStage;
+
+        // Update Difficulty before determining Stage Type
+        UpdateDifficulty(currentStage);
+
+        // Determine Stage Type
+        StageType stageType = GetStageType(currentStage);
+
+        // Log current stage, difficulty, and type
+        Debug.Log($"Stage: {currentStage}, Difficulty: {currentDifficulty}, Type: {stageType}");
+
+        // Get corresponding StageConfiguration from StageDatabase
+        StageConfiguration stageConfig = stageDatabase.stageConfigs.Find(config =>
+            config.difficulty == currentDifficulty && 
+            config.stageType == stageType);
+
+        if (stageConfig == null)
+        {
+            Debug.LogError($"No StageConfiguration found for Difficulty: {currentDifficulty} and StageType: {stageType}");
+            return;
+        }
+
+        // Save the configuration in GameManager
+        SetCurrentStage(stageConfig);
+
+        SaveData();
+        SceneManager.LoadScene("PlayScene");
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "PlayScene")
+        {
+            EnemyDeckManager enemyDeckManager = FindObjectOfType<EnemyDeckManager>();
+            if (enemyDeckManager != null)
+            {
+                enemyDeckManager.InitializeEnemyDeck(CurrentStage);
+            }
+            else
+            {
+                Debug.LogError("EnemyDeckManager not found! Deck initialization failed.");
+            }
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+    }
+
+    public void StartNewGame()
+    {
+        // Initialize a fresh PlayerSaveData
+        CurrentSaveData = new PlayerSaveData
+        {
+            currentStage = 1,
+            money = 0,
+            playerDeckIds = new List<int>(), // Clear deck explicitly
+            isSaveValid = true
+        };
+
+        saveDataLoaded = true; // Flag that new game is initialized
+        SaveData(); // Save the initialized state
+
+        Debug.Log("New game started. Save data initialized with an empty deck.");
+    }
+
+    private void UpdateDifficulty(int currentStage)
+    {
+        // Difficulty progression: Easy → Normal → Hard
+        if (currentStage > 0 && currentStage % 4 == 1) // Increase at start of each block
+        {
+            currentDifficulty = currentDifficulty switch
+            {
+                Difficulty.Easy => Difficulty.Normal,
+                Difficulty.Normal => Difficulty.Hard,
+                _ => Difficulty.Hard // Stays at Hard
+            };
+
+            Debug.Log($"Difficulty Updated to: {currentDifficulty}");
+        }
+    }
+
+    private StageType GetStageType(int currentStage)
+    {
+        // Every 4th stage is a Boss Fight
+        return (currentStage % 4 == 0) ? StageType.Boss : StageType.Normal;
+    }
+
+
     public void PlayerWin()
     {
         CurrentSaveData.isSaveValid = true;
         AddMoney(2);
-        AdvanceStage();
-        SaveData();
-        LastStageChoicesClear();
     }
 
-    public void PlayerWinChallenge()
+    public void ForceReloadSaveData()
     {
-        CurrentSaveData.isSaveValid = true;
-        AddMoney(4);
-        AdvanceStage();
-        SaveData();
-        LastStageChoicesClear();
+        LoadSaveData(); // Force reload of save data
+        Debug.Log("Save data reloaded in GameManager.");
     }
+
 }

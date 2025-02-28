@@ -80,20 +80,13 @@ public class ChooseCardStageManager : MonoBehaviour, ICardSelectionHandler
             }
 
             GameManager.Instance.AdvanceStage();
-            GameManager.Instance.LastStageChoicesClear();
-            GameManager.Instance.SaveData();
-            Debug.Log("Card added and saved. Returning to ChooseStage.");
-            SceneManager.LoadScene("ChooseStage");
+            GameManager.Instance.AddMoney(2);
+            GameManager.Instance.ContinueGame();
         }
         else
         {
             Debug.LogWarning("You must select exactly 1 card to proceed.");
         }
-    }
-
-    public void DeleteCardFromDeck()
-    {
-        SceneManager.LoadScene("DeleteCard");
     }
 }
 // fix delete back to choosecard are card change

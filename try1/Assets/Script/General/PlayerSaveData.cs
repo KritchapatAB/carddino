@@ -8,6 +8,4 @@ public class PlayerSaveData
     public int money;
     public int currentStage;
     public bool isSaveValid;
-
-    public List<string> lastStageNames = new List<string>(); 
 }

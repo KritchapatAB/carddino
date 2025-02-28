@@ -4,5 +4,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "StageDatabase", menuName = "Stage System/Stage Database")]
 public class StageDatabase : ScriptableObject
 {
-    public List<StageConfiguration> stageConfigs; // List of all stage configurations
+    [Header("Stage Configurations")]
+    public List<StageConfiguration> stageConfigs;
 }

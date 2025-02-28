@@ -43,9 +43,9 @@ public class MainMenu : MonoBehaviour
     public void ContinueGame()
     {
         Debug.Log("Continue button clicked.");
-        SceneManager.LoadScene("ChooseStage"); // Load the ChooseStage scene
+        GameManager.Instance.ContinueGame();
     }
-
+    
     private void UpdateContinueButtonState()
     {
         // Hide the Continue button if no save file or invalid save data

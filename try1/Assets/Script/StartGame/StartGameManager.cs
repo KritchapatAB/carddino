@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Collections;
 
 public class StartGameManager : MonoBehaviour,ICardSelectionHandler
 {
@@ -59,35 +60,24 @@ public class StartGameManager : MonoBehaviour,ICardSelectionHandler
 
     public void ContinueSelection()
     {
-    if (selectingAttackers && selectedAttackers.Count == maxAttackers)
-    {
-        selectingAttackers = false;
-        UpdateUI();
-        PopulateCardsByType("Defender");
-    }
-    else if (!selectingAttackers && selectedDefenders.Count == maxDefenders)
-    {
-        // ✅ Ensure GameManager exists before calling LastStageChoicesClear
-        if (GameManager.Instance != null)
+        if (selectingAttackers && selectedAttackers.Count == maxAttackers)
         {
-            GameManager.Instance.ClearMoney();
-            GameManager.Instance.LastStageChoicesClear();
-            GameManager.Instance.ResetCurrentStage();
-            GameManager.Instance.AddMoney(3);
+            selectingAttackers = false;
+            UpdateUI();
+            PopulateCardsByType("Defender");
+        }
+        else if (!selectingAttackers && selectedDefenders.Count == maxDefenders)
+        {
+            GameManager.Instance.ResetSaveData();
+            GameManager.Instance.StartNewGame(); // Initialize Save Data
+            SavePlayerData(); // Populate Deck and Save
+            GameManager.Instance.ContinueGame();
         }
         else
         {
-            Debug.LogWarning("GameManager is not initialized yet. Cannot clear LastStageChoices.");
+            Debug.LogWarning("Selection incomplete.");
         }
-
-        SavePlayerData();
-        SceneManager.LoadScene("ChooseStage");
     }
-    else
-    {
-        Debug.LogWarning("Selection incomplete.");
-    }
-}
 
     private void SavePlayerData()
     {
@@ -102,17 +92,29 @@ public class StartGameManager : MonoBehaviour,ICardSelectionHandler
             playerDeckIds.Add(normalCards[randomIndex].id);
         }
 
-        PlayerSaveData saveData = new PlayerSaveData
-        {
-            playerDeckIds = playerDeckIds,
-            money = 3,
-            currentStage = 1,
-            isSaveValid = true
-        };
+        // Convert HashSet back to List for saving
+        List<int> deckToSave = new List<int>(playerDeckIds);
 
-        SaveManager.SaveGame(saveData);
-        Debug.Log("Game saved.");
+        // ✅ Ensure playerDeckIds is not empty before saving
+        if (deckToSave.Count > 0)
+        {
+            // Use GameManager to update CurrentSaveData
+            GameManager.Instance.CurrentSaveData.playerDeckIds = deckToSave;
+            GameManager.Instance.CurrentSaveData.money = 3;
+            GameManager.Instance.CurrentSaveData.currentStage = 1;
+            GameManager.Instance.CurrentSaveData.isSaveValid = true;
+
+            // Save the data through GameManager for consistency
+            GameManager.Instance.SaveData();
+            Debug.Log("Game saved with playerDeckIds: " + string.Join(", ", deckToSave));
+        }
+        else
+        {
+            Debug.LogError("No cards in playerDeckIds. Save failed.");
+        }
     }
+
+
 
     private void UpdateUI()
     {
@@ -149,7 +151,7 @@ public class StartGameManager : MonoBehaviour,ICardSelectionHandler
             var clickable = cardObject.GetComponent<CardVizClickable>();
             if (clickable != null)
             {
-                clickable.selectionHandler = this; // Dynamically assign this manager
+                clickable.selectionHandler = this;
             }
         }
     }

@@ -19,10 +19,30 @@ public class TurnManager : MonoBehaviour
 
     public float attackDelay = 1.1f;
 
+    // public bool isPaused = false;
+
     int ATTCount = 0;
 
     [SerializeField] private Button attackButton;
     [SerializeField] private TextMeshProUGUI turnCountText;
+
+    public static TurnManager Instance { get; private set; } // ✅ Singleton
+
+    public bool isPaused = false; // ✅ Instance variable
+
+    private void Awake()
+    {
+        // Ensure Singleton Pattern
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
 
     void Start()
     {
@@ -57,6 +77,11 @@ public class TurnManager : MonoBehaviour
 
     public void StartPlayerTurn()
     {
+        if (isPaused)
+        {
+            Debug.Log("Game is paused. Player's turn will not start.");
+            return;
+        }
         currentTurn = TurnState.PlayerTurn;
         UpdateTurnDisplay();
         Debug.Log($"Turn {turnCounter}: Player's turn starts.");
@@ -93,6 +118,11 @@ public class TurnManager : MonoBehaviour
 
     private IEnumerator HandleEnemyTurn()
     {
+        if (isPaused)
+        {
+            Debug.Log("Game is paused. Enemy's turn will not start.");
+            yield break;
+        }
         Debug.Log($"Turn {turnCounter}: Enemy's turn starts.");
         yield return new WaitForSeconds(enemyTurnDelay);
 

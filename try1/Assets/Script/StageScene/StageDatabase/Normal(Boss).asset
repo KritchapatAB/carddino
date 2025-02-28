@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c405646a68cb94cb5f3a67ea18afe8, type: 3}
+  m_Name: Normal(Boss)
+  m_EditorClassIdentifier: 
+  stageName: Normal(Boss)
+  stageType: 1
+  difficulty: 1
+  maxDeckSize: 1
+  maxAttackers: 0
+  maxDefenders: 0
+  maxNormals: 0
+  minAttackerCost: 0
+  maxAttackerCost: 0
+  minDefenderCost: 0
+  maxDefenderCost: 0
+  minNormalCost: 0
+  maxNormalCost: 0
+  specificCards:
+  - cardId: 20
+    quantity: 1
+    turn: 0

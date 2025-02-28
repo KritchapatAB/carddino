@@ -51,7 +51,7 @@ public class BoardManager : MonoBehaviour
         Debug.Log($"Player slots populated: {playerSlots.Count}");
     }
 
-     public void PrepareEngageDeck()
+    public void PrepareEngageDeck()
     {
         if (GameManager.Instance == null || GameManager.Instance.CurrentSaveData == null)
         {
@@ -82,6 +82,10 @@ public class BoardManager : MonoBehaviour
                 Debug.LogWarning($"Card with ID {cardId} not found in CardDatabase!");
             }
         }
+        int playerDeckIdsDeckCount = playerDeckIds.Count;
+        int engagePlayerDeckCount = engagePlayerDeck.Count;
+        Debug.Log($"playerID: {playerDeckIdsDeckCount}");
+        Debug.Log($"playerDeck: {engagePlayerDeckCount}");
         ShuffleList(engagePlayerDeck);
     }
 

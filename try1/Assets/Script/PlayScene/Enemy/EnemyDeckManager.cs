@@ -37,11 +37,6 @@ public class EnemyDeckManager : MonoBehaviour
         FillDeckWithRandomCards("Defender", stageConfig.maxDefenders, stageConfig.minDefenderCost, stageConfig.maxDefenderCost);
         FillDeckWithRandomCards("Normal", stageConfig.maxNormals, stageConfig.minNormalCost, stageConfig.maxNormalCost);
 
-        // Apply Challenge Modifiers (Boss fights do NOT use these)
-        if (stageConfig.stageType == StageType.Challenge)
-        {
-             ApplyChallengeModifiers(stageConfig);
-        }
         TrimDeckToMaxSize(stageConfig.maxDeckSize);
         Debug.Log($"Enemy deck initialized with {enemyDeck.Count} cards.");
     }
@@ -77,32 +72,24 @@ public class EnemyDeckManager : MonoBehaviour
         return bossAndSpecificCardSchedule.ContainsKey(turn) ? bossAndSpecificCardSchedule[turn] : new List<Card>();
     }
 
-    private void ApplyChallengeModifiers(StageConfiguration stageConfig)
-    {
-        for (int i = 0; i < enemyDeck.Count; i++)
-        {
-            Card modifiedCard = new Card(enemyDeck[i]); // Avoid modifying original database card
-            
-            // 🔥 Use Bonus Health and Damage from Stage Configuration
-            modifiedCard.health += stageConfig.bonusHealth;
-            modifiedCard.damage += stageConfig.bonusDamage;
-            
-            enemyDeck[i] = modifiedCard;
-        }
-        Debug.Log($"Applied Challenge modifiers: +{stageConfig.bonusHealth} Health, +{stageConfig.bonusDamage} Damage.");
-    }
-
     private void FillDeckWithRandomCards(string cardType, int maxCount, int minCost, int maxCost)
     {
         List<Card> filteredCards = cardDatabase.cards.FindAll(
             card => card.dinoType == cardType && card.cost >= minCost && card.cost <= maxCost
         );
 
+        Debug.Log($"Filtered Cards for {cardType} | Min Cost: {minCost}, Max Cost: {maxCost}");
+        foreach (var card in filteredCards)
+        {
+            Debug.Log($"Card: {card.cardName}, Cost: {card.cost}");
+        }
+
         for (int i = 0; i < maxCount && filteredCards.Count > 0; i++)
         {
             enemyDeck.Add(filteredCards[Random.Range(0, filteredCards.Count)]);
         }
     }
+
 
     private void TrimDeckToMaxSize(int maxSize)
     {
