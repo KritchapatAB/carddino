@@ -15,20 +15,20 @@ MonoBehaviour:
   stageName: Easy(Boss)
   stageType: 1
   difficulty: 0
-  maxDeckSize: 3
+  maxDeckSize: 2
   maxAttackers: 0
-  maxDefenders: 1
+  maxDefenders: 0
   maxNormals: 0
   minAttackerCost: 0
   maxAttackerCost: 0
-  minDefenderCost: 2
-  maxDefenderCost: 2
+  minDefenderCost: 0
+  maxDefenderCost: 0
   minNormalCost: 0
   maxNormalCost: 0
   specificCards:
-  - cardId: 18
+  - cardId: 9
     quantity: 1
     turn: 0
   - cardId: 19
     quantity: 1
-    turn: 4
+    turn: 2

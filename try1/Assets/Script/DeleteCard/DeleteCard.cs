@@ -107,10 +107,8 @@ public class DeleteCard : MonoBehaviour, ICardSelectionHandler
 
             // GameManager.Instance.LastStageChoicesClear();
             GameManager.Instance.AdvanceStage();
-            GameManager.Instance.SaveData();
-            Debug.Log($"Deleted card from deck.");
-            Debug.Log("Card Deleted and saved. Returning to ChooseStage.");
-            SceneManager.LoadScene("ChooseStage");
+            GameManager.Instance.AddMoney(2);
+            GameManager.Instance.ContinueGame();
         }
         else
         {

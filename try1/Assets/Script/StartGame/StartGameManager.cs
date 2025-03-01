@@ -114,8 +114,6 @@ public class StartGameManager : MonoBehaviour,ICardSelectionHandler
         }
     }
 
-
-
     private void UpdateUI()
     {
         string message = selectingAttackers

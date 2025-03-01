@@ -89,4 +89,3 @@ public class ChooseCardStageManager : MonoBehaviour, ICardSelectionHandler
         }
     }
 }
-// fix delete back to choosecard are card change

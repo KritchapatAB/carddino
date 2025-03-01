@@ -26,7 +26,22 @@ public class MainMenu : MonoBehaviour
         }
         settingsPopupCanvas.SetActive(false);
         settingsButton.onClick.AddListener(OpenSettings);
+        LogPlayerPrefsPath();
     }
+
+    private void LogPlayerPrefsPath()
+{
+    string path = "";
+
+#if UNITY_EDITOR
+    path = Application.persistentDataPath + "/../Library/Preferences/unity." + Application.companyName + "." + Application.productName + ".plist";
+#elif UNITY_STANDALONE_WIN
+    path = Application.persistentDataPath + "\\..\\..\\HKEY_CURRENT_USER\\Software\\" + Application.companyName + "\\" + Application.productName;
+#endif
+
+    Debug.Log("PlayerPrefs Path: " + path);
+}
+
 
      private void OpenSettings()
     {

@@ -51,6 +51,9 @@ public class GameManager : MonoBehaviour
 
     public void ResetSaveData()
     {
+        // Reset Difficulty to Easy when clearing save data
+        currentDifficulty = Difficulty.Easy;
+
         SaveManager.DeleteSave();
         CurrentSaveData = new PlayerSaveData
         {
@@ -60,9 +63,10 @@ public class GameManager : MonoBehaviour
             isSaveValid = false
         };
         saveDataLoaded = false; // Reset the flag to allow reloading on new game
-        Debug.Log("Save data has been reset.");
+        Debug.Log("Save data has been reset. Difficulty reset to Easy.");
         ResetCurrentStage();
     }
+
 
     public void AddToPlayerDeck(int cardId) => CurrentSaveData.playerDeckIds.Add(cardId);
     public void RemoveFromPlayerDeck(int cardId) => CurrentSaveData.playerDeckIds.Remove(cardId);
@@ -137,6 +141,9 @@ public class GameManager : MonoBehaviour
 
     public void StartNewGame()
     {
+        // Reset Difficulty to Easy for a fresh start
+        currentDifficulty = Difficulty.Easy;
+
         // Initialize a fresh PlayerSaveData
         CurrentSaveData = new PlayerSaveData
         {
@@ -149,13 +156,15 @@ public class GameManager : MonoBehaviour
         saveDataLoaded = true; // Flag that new game is initialized
         SaveData(); // Save the initialized state
 
-        Debug.Log("New game started. Save data initialized with an empty deck.");
+        Debug.Log("New game started. Difficulty reset to Easy.");
     }
+
 
     private void UpdateDifficulty(int currentStage)
     {
         // Difficulty progression: Easy → Normal → Hard
-        if (currentStage > 0 && currentStage % 4 == 1) // Increase at start of each block
+        // Increase Difficulty AFTER Boss Fight, at the start of the new block
+        if (currentStage > 1 && (currentStage - 1) % 4 == 0) // At the START of each new block
         {
             currentDifficulty = currentDifficulty switch
             {
@@ -167,6 +176,8 @@ public class GameManager : MonoBehaviour
             Debug.Log($"Difficulty Updated to: {currentDifficulty}");
         }
     }
+
+
 
     private StageType GetStageType(int currentStage)
     {
