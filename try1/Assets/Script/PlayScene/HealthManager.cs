@@ -10,17 +10,22 @@ public class HealthManager : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI playerHealthText;
     [SerializeField] private TextMeshProUGUI enemyHealthText;
+    [SerializeField] private TextMeshProUGUI stageInfoText;
 
     [Header("Win and Lose Popups")]
     [SerializeField] private GameObject winPopup;
     [SerializeField] private GameObject clearPopup;
     [SerializeField] private GameObject losePopup;
+
+    [SerializeField] private GameObject ExitCheckPopup;
+
+    [SerializeField] private GameObject bossInfoText;
+
     [SerializeField] private TextMeshProUGUI winText;
 
     [SerializeField] private Button continueButton;
     [SerializeField] private Button quitButton;
     [SerializeField] private Button clearButton;
-    [SerializeField] private Button bossButton;
     [SerializeField] private Button getCardButton;
     [SerializeField] private Button deleteCardButton;
     [SerializeField] private Button shopButton;
@@ -53,6 +58,8 @@ public class HealthManager : MonoBehaviour
         winPopup.SetActive(false);
         clearPopup.SetActive(false);
         losePopup.SetActive(false);
+        ExitCheckPopup.SetActive(false);
+        bossInfoText.SetActive(false);
 
         gameManager = FindObjectOfType<GameManager>();
         boardManager = FindObjectOfType<BoardManager>();
@@ -111,10 +118,9 @@ public class HealthManager : MonoBehaviour
         winText.text = "+2";
         Debug.Log($"(checker: {StageType.Normal})");
         continueButton.gameObject.SetActive(true);
-
+        GetCurrentStagenow();
         UpdateWinButtons();
     }
-
 
     private void UpdateWinButtons()
     {
@@ -173,6 +179,15 @@ public class HealthManager : MonoBehaviour
         GameManager.Instance.ResetSaveData();
     }
 
+    public void AlertBoxQuitON()
+    {
+        ExitCheckPopup.SetActive(true);
+    }
+
+    public void AlertBoxQuitOFF()
+    {
+        ExitCheckPopup.SetActive(false);
+    }
 
     public void QuitGame()
     {
@@ -209,5 +224,16 @@ public class HealthManager : MonoBehaviour
     private bool ShouldShowSkipBattle()
     {
         return turnManager.GetCurrentTurn() >= 21 || boardManager.engagePlayerDeck.Count == 0;
+    }
+
+    private void GetCurrentStagenow()
+    {
+        int currentStageNow = GameManager.Instance.CurrentSaveData.currentStage;
+
+        if ((currentStageNow + 1) % 4 == 0)
+        {
+            bossInfoText.SetActive(true);
+        }
+        stageInfoText.text = $"Choose Your Choice ({currentStageNow}/12)";
     }
 }

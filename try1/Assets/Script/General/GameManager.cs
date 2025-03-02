@@ -162,21 +162,19 @@ public class GameManager : MonoBehaviour
 
     private void UpdateDifficulty(int currentStage)
     {
-        // Difficulty progression: Easy → Normal → Hard
-        // Increase Difficulty AFTER Boss Fight, at the start of the new block
-        if (currentStage > 1 && (currentStage - 1) % 4 == 0) // At the START of each new block
+        // Difficulty should be calculated based on the number of 4-stage cycles completed
+        int completedBlocks = (currentStage - 1) / 4;
+
+        // Set difficulty based on completed blocks (instead of incrementing every time)
+        currentDifficulty = completedBlocks switch
         {
-            currentDifficulty = currentDifficulty switch
-            {
-                Difficulty.Easy => Difficulty.Normal,
-                Difficulty.Normal => Difficulty.Hard,
-                _ => Difficulty.Hard // Stays at Hard
-            };
+            0 => Difficulty.Easy,   // Stages 1-4 → Easy
+            1 => Difficulty.Normal, // Stages 5-8 → Normal
+            _ => Difficulty.Hard    // Stages 9+ → Hard
+        };
 
-            Debug.Log($"Difficulty Updated to: {currentDifficulty}");
-        }
+        Debug.Log($"Difficulty Set to: {currentDifficulty} at Stage {currentStage}");
     }
-
 
 
     private StageType GetStageType(int currentStage)
@@ -184,7 +182,6 @@ public class GameManager : MonoBehaviour
         // Every 4th stage is a Boss Fight
         return (currentStage % 4 == 0) ? StageType.Boss : StageType.Normal;
     }
-
 
     public void PlayerWin()
     {

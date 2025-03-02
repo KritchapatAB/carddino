@@ -14,10 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 16
   cardName: Allosaurus
-  cardClass: {fileID: 21300000, guid: 460f31cba1b4f7145abf29a8436f49fd, type: 3}
+  cardClass: {fileID: 21300000, guid: 67d96c6309d53cd429a2c1a94e321115, type: 3}
   cost: 3
-  damage: 3
+  damage: 4
   health: 5
   dinoType: Attacker
   dinoImage: {fileID: 21300000, guid: 7134312f3283b4e499bcd65eba6246e8, type: 3}
-  cardType: 1

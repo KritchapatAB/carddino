@@ -14,10 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 7
   cardName: Stegosaurus
-  cardClass: {fileID: 21300000, guid: 72c1bc3d3c00fdc42980cc837d01deea, type: 3}
+  cardClass: {fileID: 21300000, guid: 9d0a0322254e1674ca872f9a29c7dc09, type: 3}
   cost: 2
   damage: 1
-  health: 4
+  health: 6
   dinoType: Defender
   dinoImage: {fileID: 21300000, guid: 230f5166d5baa364791ca79fded3a67b, type: 3}
-  cardType: 2

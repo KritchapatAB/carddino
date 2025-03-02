@@ -14,10 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 8
   cardName: Quetzalcoatlus
-  cardClass: {fileID: 21300000, guid: 72c1bc3d3c00fdc42980cc837d01deea, type: 3}
+  cardClass: {fileID: 21300000, guid: 9d0a0322254e1674ca872f9a29c7dc09, type: 3}
   cost: 2
   damage: 0
-  health: 6
+  health: 8
   dinoType: Defender
   dinoImage: {fileID: 21300000, guid: 39a4821c2455ec4498ca3fbeae262540, type: 3}
-  cardType: 2
