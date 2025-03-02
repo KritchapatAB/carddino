@@ -26,6 +26,10 @@ public class TurnManager : MonoBehaviour
     [SerializeField] private Button attackButton;
     [SerializeField] private TextMeshProUGUI turnCountText;
 
+    [SerializeField] private GameObject background;
+    private SpriteRenderer backgroundRenderer;
+    private HealthManager healthManager;
+
     public static TurnManager Instance { get; private set; } // ✅ Singleton
 
     public bool isPaused = false; // ✅ Instance variable
@@ -46,6 +50,18 @@ public class TurnManager : MonoBehaviour
 
     void Start()
     {
+
+        healthManager = FindObjectOfType<HealthManager>();
+        
+        if (background != null)
+        {
+            backgroundRenderer = background.GetComponent<SpriteRenderer>(); // Get the SpriteRenderer
+            if (backgroundRenderer == null)
+            {
+                Debug.LogError("Background object does not have a SpriteRenderer component!");
+            }
+        }
+
         boardManager = FindObjectOfType<BoardManager>();
         enemyManager = FindObjectOfType<EnemyManager>();
         playerHand = FindObjectOfType<PlayerHand>();
@@ -82,6 +98,7 @@ public class TurnManager : MonoBehaviour
             Debug.Log("Game is paused. Player's turn will not start.");
             return;
         }
+        HandleBackgroundEffect();
         currentTurn = TurnState.PlayerTurn;
         UpdateTurnDisplay();
         Debug.Log($"Turn {turnCounter}: Player's turn starts.");
@@ -390,4 +407,35 @@ private void UpdateTurnDisplay()
     }
 }
 
+ private void HandleBackgroundEffect()
+    {
+        if (healthManager == null || backgroundRenderer == null)
+        {
+            Debug.LogError("HealthManager or Background Renderer is missing!");
+            return;
+        }
+
+        int playerHealth = healthManager.GetPlayerHealth();
+
+        if (playerHealth < 4)
+        {
+            StartCoroutine(BlinkBackgroundEffect());
+        }
+    }
+
+    private IEnumerator BlinkBackgroundEffect()
+    {
+        Color normalColor = Color.white; // White
+        Color blinkColor = new Color(1f, 0.57f, 0.53f); // #FF9188
+        Color finalColor = new Color(1f, 0.70f, 0.68f); // #FFB2AD
+
+        for (int i = 0; i < 3; i++) // Blink 3 times
+        {
+            backgroundRenderer.color = blinkColor;
+            yield return new WaitForSeconds(0.3f);
+            backgroundRenderer.color = normalColor;
+            yield return new WaitForSeconds(0.3f);
+        }
+        backgroundRenderer.color = finalColor; // Set to permanent color after blinking
+    }
 }

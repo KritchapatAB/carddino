@@ -34,7 +34,7 @@ public class SFXManager : MonoBehaviour
         audioSource.playOnAwake = false;
     }
 
-    // 🎵 Public Method to Play SFX
+    // Public Method to Play SFX
     public void PlaySFX(AudioClip clip)
     {
         if (clip != null)
@@ -43,13 +43,13 @@ public class SFXManager : MonoBehaviour
         }
     }
 
-    // 🔊 Play Button Click SFX
+    // Play Button Click SFX
     public void PlayButtonClick()
     {
         PlaySFX(buttonClickSFX);
     }
 
-    // 🔊 Play Test SFX
+    // Play Test SFX
     public void PlayTestSFX()
     {
         PlaySFX(SFXtest);

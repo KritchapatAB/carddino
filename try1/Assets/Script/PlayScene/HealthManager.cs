@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI; // Import for Button
+using System.Collections;
 
 public class HealthManager : MonoBehaviour
 {
@@ -236,4 +237,10 @@ public class HealthManager : MonoBehaviour
         }
         stageInfoText.text = $"Choose Your Choice ({currentStageNow}/12)";
     }
+    
+    public int GetPlayerHealth()
+    {
+        return playerHealth;
+    }
+
 }
