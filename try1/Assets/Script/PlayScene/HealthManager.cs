@@ -31,6 +31,16 @@ public class HealthManager : MonoBehaviour
     [SerializeField] private Button deleteCardButton;
     [SerializeField] private Button shopButton;
 
+    [Header("Heart Images")]
+    [SerializeField] private Image playerHeartImage;
+    [SerializeField] private Image enemyHeartImage;
+
+    [Header("Heart Sprites")]
+    [SerializeField] private Sprite fullHeart;
+    [SerializeField] private Sprite threeQuarterHeart;
+    [SerializeField] private Sprite halfHeart;
+    [SerializeField] private Sprite lowHeart;
+
     private GameManager gameManager;
     private BoardManager boardManager;
     private TurnManager turnManager;
@@ -78,6 +88,7 @@ public class HealthManager : MonoBehaviour
     {
         playerHealthText.text = playerHealth.ToString();
         enemyHealthText.text = enemyHealth.ToString();
+        UpdateHeartDisplay();
     }
 
     public void DamagePlayer(int damage)
@@ -241,6 +252,29 @@ public class HealthManager : MonoBehaviour
     public int GetPlayerHealth()
     {
         return playerHealth;
+    }
+
+     private void UpdateHeartDisplay()
+    {
+        // Update Player Heart UI
+        if (playerHealth <= 3)
+            playerHeartImage.sprite = lowHeart;
+        else if (playerHealth <= 6)
+            playerHeartImage.sprite = halfHeart;
+        else if (playerHealth <= 9)
+            playerHeartImage.sprite = threeQuarterHeart;
+        else
+            playerHeartImage.sprite = fullHeart;
+
+        // Update Enemy Heart UI
+        if (enemyHealth <= 3)
+            enemyHeartImage.sprite = lowHeart;
+        else if (enemyHealth <= 6)
+            enemyHeartImage.sprite = halfHeart;
+        else if (enemyHealth <= 9)
+            enemyHeartImage.sprite = threeQuarterHeart;
+        else
+            enemyHeartImage.sprite = fullHeart;
     }
 
 }

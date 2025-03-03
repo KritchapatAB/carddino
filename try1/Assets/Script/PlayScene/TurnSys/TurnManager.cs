@@ -19,8 +19,6 @@ public class TurnManager : MonoBehaviour
 
     public float attackDelay = 1.1f;
 
-    // public bool isPaused = false;
-
     int ATTCount = 0;
 
     [SerializeField] private Button attackButton;
@@ -36,7 +34,6 @@ public class TurnManager : MonoBehaviour
 
     private void Awake()
     {
-        // Ensure Singleton Pattern
         if (Instance == null)
         {
             Instance = this;
@@ -55,7 +52,7 @@ public class TurnManager : MonoBehaviour
         
         if (background != null)
         {
-            backgroundRenderer = background.GetComponent<SpriteRenderer>(); // Get the SpriteRenderer
+            backgroundRenderer = background.GetComponent<SpriteRenderer>();
             if (backgroundRenderer == null)
             {
                 Debug.LogError("Background object does not have a SpriteRenderer component!");
@@ -78,7 +75,7 @@ public class TurnManager : MonoBehaviour
         if (attackButton != null)
         {
             attackButton.onClick.AddListener(OnAttackButtonClicked);
-            attackButton.interactable = false; // Disable at start
+            attackButton.interactable = false;
         }
         UpdateTurnDisplay();
         if (currentTurn == TurnState.EnemyTurn)
@@ -374,12 +371,6 @@ private IEnumerator HandleBossAttack(CardInstance boss, List<GameObject> defende
             yield return new WaitForSeconds(0.5f); // Add delay between attacks for better visualization
         }
     }
-    else
-    {
-        // ✅ If no targets, Boss attacks the player directly (handled in FindBossAttackTarget)
-        // Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} attacks the player directly!");
-    }
-
     yield return null;
 }
 
@@ -417,7 +408,7 @@ private void UpdateTurnDisplay()
 
         int playerHealth = healthManager.GetPlayerHealth();
 
-        if (playerHealth < 4)
+        if (playerHealth <= 4)
         {
             StartCoroutine(BlinkBackgroundEffect());
         }
@@ -432,9 +423,9 @@ private void UpdateTurnDisplay()
         for (int i = 0; i < 3; i++) // Blink 3 times
         {
             backgroundRenderer.color = blinkColor;
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.2f);
             backgroundRenderer.color = normalColor;
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.2f);
         }
         backgroundRenderer.color = finalColor; // Set to permanent color after blinking
     }

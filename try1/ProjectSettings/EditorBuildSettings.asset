@@ -14,11 +14,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PlayScene.unity
     guid: 4068dfe7377b49a43a9d5efe721f2d8b
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/ChooseStage.unity
     guid: cb0efc71a3987c241ac6ee2cde7bfcd3
   - enabled: 1
-    path: Assets/Scenes/PlayerDeckStage.unity
+    path: Assets/Scenes/PlayerDeckStage(NotUse).unity
     guid: bd7d79e3c3bc62a45a89bf75e1b844d7
   - enabled: 1
     path: Assets/Scenes/ChooseCard.unity
