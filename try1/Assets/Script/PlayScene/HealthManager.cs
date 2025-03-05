@@ -19,6 +19,7 @@ public class HealthManager : MonoBehaviour
     [SerializeField] private GameObject losePopup;
 
     [SerializeField] private GameObject ExitCheckPopup;
+    [SerializeField] private GameObject ContinueCheckPopup;
 
     [SerializeField] private GameObject bossInfoText;
 
@@ -71,6 +72,7 @@ public class HealthManager : MonoBehaviour
         losePopup.SetActive(false);
         ExitCheckPopup.SetActive(false);
         bossInfoText.SetActive(false);
+        ContinueCheckPopup.SetActive(false);
 
         gameManager = FindObjectOfType<GameManager>();
         boardManager = FindObjectOfType<BoardManager>();
@@ -201,6 +203,16 @@ public class HealthManager : MonoBehaviour
         ExitCheckPopup.SetActive(false);
     }
 
+    public void AlertBoxContinueON()
+    {
+        ContinueCheckPopup.SetActive(true);
+    }
+
+    public void AlertBoxContinueOFF()
+    {
+        ContinueCheckPopup.SetActive(false);
+    }
+
     public void QuitGame()
     {
         SceneManager.LoadScene("Mainmenu");
@@ -246,7 +258,7 @@ public class HealthManager : MonoBehaviour
         {
             bossInfoText.SetActive(true);
         }
-        stageInfoText.text = $"Choose Your Choice ({currentStageNow}/12)";
+        stageInfoText.text = $"You Pass Stage ({currentStageNow}/12)";
     }
     
     public int GetPlayerHealth()

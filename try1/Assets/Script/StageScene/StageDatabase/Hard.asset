@@ -16,8 +16,8 @@ MonoBehaviour:
   stageType: 0
   difficulty: 2
   maxDeckSize: 9
-  maxAttackers: 3
-  maxDefenders: 3
+  maxAttackers: 2
+  maxDefenders: 2
   maxNormals: 3
   minAttackerCost: 1
   maxAttackerCost: 3
@@ -26,5 +26,3 @@ MonoBehaviour:
   minNormalCost: 0
   maxNormalCost: 0
   specificCards: []
-  bonusHealth: 0
-  bonusDamage: 0
