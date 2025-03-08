@@ -664,28 +664,34 @@ public List<CardInstance> FindBossAttackTarget(CardInstance boss, List<GameObjec
     Debug.Log($"🔎 FindBossAttackTarget - Boss: {boss.cardData.cardName}");
     List<CardInstance> targets = new List<CardInstance>();
 
-    // ✅ Step 1: Check for the Leftmost Defender
+    // ✅ Step 1: Find Leftmost Defender (if exists)
     CardInstance leftmostDefender = FindDefenderTarget(playerSlots, false);
-
     if (leftmostDefender != null)
     {
         Debug.Log($"🛡 Boss Targeting Leftmost Defender: {leftmostDefender.cardData.cardName}");
         targets.Add(leftmostDefender); // ✅ Only targets the Leftmost Defender
-        return targets; // Return immediately if Defender is found
+        return targets; // ✅ Exit early to avoid additional checks
     }
 
-    // ✅ Step 2: No Defenders Found → Target All Cards in Player Area
+    // ✅ Step 2: If No Defenders Found → Target All Cards in Player Area
+    bool attackedAtLeastOneCard = false;
     foreach (var slot in playerSlots)
     {
+        if (slot == null) continue;
+
         CardViz cardViz = slot.GetComponentInChildren<CardViz>();
-        CardInstance targetCard = cardViz?.GetCardInstance();
+        if (cardViz == null) continue;
+
+        CardInstance targetCard = cardViz.GetCardInstance();
         if (targetCard != null)
         {
-            targets.Add(targetCard); // ✅ Add all cards in Player Area
+            targets.Add(targetCard);
+            attackedAtLeastOneCard = true;
         }
     }
 
-    if (targets.Count == 0)
+    // ✅ Step 3: If the boss already attacked at least one card, it should NOT attack the player directly
+    if (!attackedAtLeastOneCard)
     {
         Debug.Log($"🔥 [Boss] Direct Attack to Player! {boss.cardData.cardName} deals {boss.currentDamage} damage!");
         HealthManager.Instance.DamagePlayer(boss.currentDamage);
@@ -693,5 +699,7 @@ public List<CardInstance> FindBossAttackTarget(CardInstance boss, List<GameObjec
 
     return targets;
 }
+
+
 
 }

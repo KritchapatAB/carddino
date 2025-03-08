@@ -62,7 +62,6 @@ public class DeleteCard : MonoBehaviour, ICardSelectionHandler
 }
 
 
-
     public bool SelectCard(Card card)
     {
         if (selectedCards.Count < maxSelectableCards)
@@ -88,11 +87,6 @@ public class DeleteCard : MonoBehaviour, ICardSelectionHandler
     private void OnDisable()
     {
         GameManager.Instance.SaveData(); // Save changes when leaving
-    }
-
-    public void ChooseCard()
-    {
-        SceneManager.LoadScene("ChooseCard");
     }
 
     public void ConfirmSelection()

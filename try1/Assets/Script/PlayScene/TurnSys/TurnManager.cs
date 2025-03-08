@@ -238,77 +238,90 @@ public class TurnManager : MonoBehaviour
         onComplete?.Invoke(); // Calls next turn transition (e.g., HandleEnemyTurn)
     }
 
+private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> defenders, string attackerType)
+{
+    Debug.Log("PA1");
+    bool isPlayerTurn = attackerType == "Player";
 
-    private IEnumerator ProcessAttacks(List<GameObject> attackers, List<GameObject> defenders, string attackerType)
+    for (int i = 0; i < attackers.Count; i++)
     {
-        Debug.Log("PA1");
-        bool isPlayerTurn = attackerType == "Player";
+        GameObject attackerSlot = attackers[i];
+        CardInstance attacker = null;
 
-        for (int i = 0; i < attackers.Count; i++)
+        CardViz attackerCardViz = attackerSlot.GetComponentInChildren<CardViz>();
+
+        if (attackerCardViz == null)
         {
-            GameObject attackerSlot = attackers[i];
-            CardInstance attacker = null;
+            Debug.LogWarning($"⚠️ No CardViz found in attacker slot: {attackerSlot.name}");
+            continue;
+        }
 
-            CardViz attackerCardViz = attackerSlot.GetComponentInChildren<CardViz>();
+        attacker = attackerCardViz.GetCardInstance();
+        if (attacker == null)
+        {
+            Debug.LogWarning($"⚠️ CardInstance is NULL for {attackerSlot.name}!");
+            continue;
+        }
 
-            if (attackerCardViz == null)
+        Debug.Log($"✅ Attacker Found: {attacker.cardData.cardName} (Slot {i})");
+
+        // ✅ Track if the boss attacked at least one card
+        bool attackedAtLeastOneCard = false;
+
+        List<CardInstance> targets = new List<CardInstance>();
+
+        if (attacker.cardData.dinoType == "Boss")
+        {
+            // ✅ Find targets for the boss
+            targets = boardManager.FindBossAttackTarget(attacker, defenders);
+
+            if (targets.Count > 0)
             {
-                Debug.LogWarning($"⚠️ No CardViz found in attacker slot: {attackerSlot.name}");
-                continue;
+                attackedAtLeastOneCard = true;
             }
-
-            attacker = attackerCardViz.GetCardInstance();
-            if (attacker == null)
+        }
+        else
+        {
+            // ✅ Normal attack: Find a single target
+            CardInstance target = boardManager.FindNormalAttackTarget(attacker, defenders, i, isPlayerTurn);
+            if (target != null)
             {
-                Debug.LogWarning($"⚠️ CardInstance is NULL for {attackerSlot.name}!");
-                continue;
+                targets.Add(target);
             }
+        }
 
-            Debug.Log($"✅ Attacker Found: {attacker.cardData.cardName} (Slot {i})");
+        if (targets.Count == 0)
+        {
+            Debug.Log($"⚠️ No valid target for {attacker.cardData.cardName} in slot {i}. Skipping attack.");
+            continue;
+        }
 
-            // ✅ Change to List<CardInstance> for Boss targeting
-            List<CardInstance> targets = new List<CardInstance>();
+        // ✅ Perform the attack on each target
+        foreach (var target in targets)
+        {
+            Debug.Log($"🎯 {attacker.cardData.cardName} attacks {target.cardData.cardName}!");
 
-            // Check if it's a Boss or Normal card
             if (attacker.cardData.dinoType == "Boss")
             {
-                targets = boardManager.FindBossAttackTarget(attacker, defenders);
+                yield return StartCoroutine(HandleBossAttack(attacker, target, attackerType));
             }
             else
             {
-                // ✅ Single target for normal cards
-                CardInstance target = boardManager.FindNormalAttackTarget(attacker, defenders, i, isPlayerTurn);
-                if (target != null)
-                {
-                    targets.Add(target); // Add single target to list for consistency
-                }
+                yield return StartCoroutine(HandleNormalAttack(attacker, defenders, i, attackerType));
             }
 
-            if (targets.Count == 0)
-            {
-                Debug.Log($"⚠️ No valid target for {attacker.cardData.cardName} in slot {i}. Skipping attack.");
-                continue;
-            }
-
-            // ✅ Loop through all targets and attack each one
-            foreach (var target in targets)
-            {
-                Debug.Log($"🎯 {attacker.cardData.cardName} attacks {target.cardData.cardName}!");
-
-                if (attacker.cardData.dinoType == "Boss")
-                {
-                    yield return StartCoroutine(HandleBossAttack(attacker, defenders, attackerType));
-                }
-                else
-                {
-                    yield return StartCoroutine(HandleNormalAttack(attacker, defenders, i, attackerType));
-                }
-
-                yield return new WaitForSeconds(attackDelay);
-            }
+            yield return new WaitForSeconds(attackDelay);
         }
-        Debug.Log("PA3");
+
+        // ✅ If boss didn't attack any card, it can attack the player
+        if (attacker.cardData.dinoType == "Boss" && !attackedAtLeastOneCard)
+        {
+            Debug.Log($"🔥 [Boss] Direct Attack to Player! {attacker.cardData.cardName} deals {attacker.currentDamage} damage!");
+            HealthManager.Instance.DamagePlayer(attacker.currentDamage);
+        }
     }
+    Debug.Log("PA3");
+}
 
 
 private IEnumerator HandleNormalAttack(CardInstance attacker, List<GameObject> defenders, int slotIndex, string attackerType)
@@ -350,55 +363,42 @@ private IEnumerator HandleNormalAttack(CardInstance attacker, List<GameObject> d
         yield return null;
     }
 
-private IEnumerator HandleBossAttack(CardInstance boss, List<GameObject> defenders, string attackerType)
-{
-    bool isPlayerTurn = (attackerType == "Player");
-
-    // ✅ Use the updated FindBossAttackTarget() method
-    List<CardInstance> targets = boardManager.FindBossAttackTarget(boss, defenders);
-
-    if (targets.Count > 0)
+    
+    private IEnumerator HandleBossAttack(CardInstance boss, CardInstance target, string attackerType)
     {
-        // ✅ Boss attacks each target found
-        foreach (var target in targets)
+        Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} attacks {target.cardData.cardName}!");
+
+        int bossDamage = boss.currentDamage;
+        target.TakeDamage(bossDamage);
+
+        yield return new WaitForSeconds(0.5f); // Add delay for visualization
+    }
+
+    public int GetCurrentTurn()
+    {
+        return turnCounter;
+    }
+
+    private void UpdateTurnDisplay()
+    {
+        if (turnCountText != null)
         {
-            Debug.Log($"[{attackerType} BOSS] {boss.cardData.cardName} attacks {target.cardData.cardName}!");
-
-            // ✅ Boss Damage Calculation (No reduction, normal damage)
-            int bossDamage = boss.currentDamage;
-            target.TakeDamage(bossDamage);
-
-            yield return new WaitForSeconds(0.5f); // Add delay between attacks for better visualization
+            if (currentTurn == TurnState.PlayerTurn)
+            {
+                turnCountText.text = "Player";
+            }
+            else if (currentTurn == TurnState.EnemyTurn)
+            {
+                turnCountText.text = "Enemy";
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Turn Count Text is not assigned in the Inspector.");
         }
     }
-    yield return null;
-}
 
-public int GetCurrentTurn()
-{
-    return turnCounter;
-}
-
-private void UpdateTurnDisplay()
-{
-    if (turnCountText != null)
-    {
-        if (currentTurn == TurnState.PlayerTurn)
-        {
-            turnCountText.text = "Player";
-        }
-        else if (currentTurn == TurnState.EnemyTurn)
-        {
-            turnCountText.text = "Enemy";
-        }
-    }
-    else
-    {
-        Debug.LogWarning("Turn Count Text is not assigned in the Inspector.");
-    }
-}
-
- private void HandleBackgroundEffect()
+    private void HandleBackgroundEffect()
     {
         if (healthManager == null || backgroundRenderer == null)
         {

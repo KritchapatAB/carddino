@@ -17,10 +17,6 @@ public class SettingsPopup : MonoBehaviour
     [Header("Audio Mixer")]
     [SerializeField] private AudioMixer audioMixer;
 
-    // Default Values
-    private const float defaultVolume = 1.0f;
-    private const int defaultScreenMode = 0;
-
     // JSON Save File Path
     private string settingsFilePath;
 
